@@ -11,8 +11,7 @@
      4. interpretCV(cv) — semáforo de homogeneidade
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Colunas identificadoras — não são variáveis de resposta ─── */
-const ID_COLS = ['TR', 'REP', 'PER'];
+/* ── ID_COLS herdado de validation.js (carregado antes no index.html) ── */
 
 /* ═══════════════════════════════════════════════════════════════
    PONTO DE ENTRADA
