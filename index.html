@@ -328,6 +328,26 @@ footer strong { color: var(--gold); }
 .chart-dl-btn:hover{background:rgba(255,255,255,0.38);}
 .chart-card-body{padding:4px;}
 
+/* Input de eixo dentro do card */
+.card-axis-input {
+  width: 58px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.72rem;
+  text-align: center;
+  transition: var(--transition);
+}
+.card-axis-input::placeholder { color: rgba(255,255,255,0.55); }
+.card-axis-input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.28);
+  border-color: rgba(255,255,255,0.70);
+}
+
 /* ── RESPONSIVO ─────────────────────────────────────────────────── */
 @media (max-width: 800px) {
   .upload-page { grid-template-columns: 1fr; }
@@ -791,11 +811,11 @@ footer strong { color: var(--gold); }
 
           <!-- Limites de eixo -->
           <div class="ctrl-group">
-            <span class="ctrl-label">Eixo Y</span>
+            <span class="ctrl-label">Eixo Y Global</span>
             <div class="axis-inputs">
-              <input type="number" id="yMin" placeholder="Mín" class="axis-input" oninput="refreshCharts()">
+              <input type="number" id="yMin" placeholder="Mín" class="axis-input" oninput="propagateGlobalY()">
               <span class="axis-sep">–</span>
-              <input type="number" id="yMax" placeholder="Máx" class="axis-input" oninput="refreshCharts()">
+              <input type="number" id="yMax" placeholder="Máx" class="axis-input" oninput="propagateGlobalY()">
             </div>
           </div>
 
@@ -1363,14 +1383,31 @@ function refreshCharts() {
   }
 
   varsToRender.forEach(function(varName, vIdx) {
-    var card = document.createElement('div');
+    var card  = document.createElement('div');
     card.className = 'chart-card';
-    var divId = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
+    var divId  = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
+    var yMinId = 'ymin_' + divId;
+    var yMaxId = 'ymax_' + divId;
+
     card.innerHTML =
-      '<div class="chart-card-title">' + varName +
-      '<button class="chart-dl-btn" onclick="downloadChart(\'' + divId + '\',\'' + varName + '\')">⬇ PNG</button>' +
+      '<div class="chart-card-title">' +
+        '<span>' + varName + '</span>' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<label style="font-size:0.68rem;opacity:0.85;">Y:</label>' +
+          '<input type="number" id="' + yMinId + '" placeholder="mín"' +
+            ' class="card-axis-input" title="Y mínimo"' +
+            ' oninput="applyCardAxis(\'' + divId + '\',\'' + yMinId + '\',\'' + yMaxId + '\')">' +
+          '<span style="font-size:0.75rem;opacity:0.7;">–</span>' +
+          '<input type="number" id="' + yMaxId + '" placeholder="máx"' +
+            ' class="card-axis-input" title="Y máximo"' +
+            ' oninput="applyCardAxis(\'' + divId + '\',\'' + yMinId + '\',\'' + yMaxId + '\')">' +
+          '<button class="chart-dl-btn" onclick="downloadChart(\'' + divId + '\',\'' + varName + '\')">⬇ PNG</button>' +
+        '</div>' +
       '</div>' +
-      '<div class="chart-card-body"><div id="' + divId + '" style="width:100%;height:' + (chartLayout==='single'?'500':'320') + 'px;"></div></div>';
+      '<div class="chart-card-body">' +
+        '<div id="' + divId + '" style="width:100%;height:' + (chartLayout==='single'?'500':'320') + 'px;"></div>' +
+      '</div>';
+
     grid.appendChild(card);
 
     /* Constrói traces dependendo do modo */
@@ -1380,10 +1417,8 @@ function refreshCharts() {
     if (chartType === 'box') {
       traces = buildBoxTraces(varName, trKey, perKey, treatments, periods);
     } else if (perKey && perMode === 'periods') {
-      /* Evolução temporal: série por tratamento, eixo X = períodos */
       traces = buildPeriodTraces(varName, trKey, perKey, treatments, periods);
     } else {
-      /* Padrão: eixo X = tratamentos */
       traces = buildTreatmentTraces(varName, trKey, perKey, treatments, periods);
     }
 
@@ -1392,6 +1427,14 @@ function refreshCharts() {
       displaylogo: false,
       modeBarButtonsToRemove: ['lasso2d','select2d','autoScale2d']
     });
+
+    /* Aplica limites globais de Y se preenchidos */
+    var gYMin = parseFloat(document.getElementById('yMin').value);
+    var gYMax = parseFloat(document.getElementById('yMax').value);
+    if (!isNaN(gYMin) && !isNaN(gYMax)) {
+      document.getElementById(yMinId).value = gYMin;
+      document.getElementById(yMaxId).value = gYMax;
+    }
   });
 }
 
@@ -1594,6 +1637,40 @@ function buildPlotLayout(varName, treatments, periods) {
   if (yRange) layout.yaxis.range = yRange;
 
   return layout;
+}
+
+/* ── Controle de eixo individual por gráfico ── */
+function applyCardAxis(divId, yMinId, yMaxId) {
+  var el = document.getElementById(divId);
+  if (!el || !el.data) return;
+  var yMin = parseFloat(document.getElementById(yMinId).value);
+  var yMax = parseFloat(document.getElementById(yMaxId).value);
+  var update = {};
+  if (!isNaN(yMin) && !isNaN(yMax) && yMax > yMin) {
+    update['yaxis.range']      = [yMin, yMax];
+    update['yaxis.autorange']  = false;
+  } else {
+    update['yaxis.autorange']  = true;
+  }
+  Plotly.relayout(divId, update);
+}
+
+/* Quando o limite global de Y muda, propaga para todos os cards visíveis */
+function propagateGlobalY() {
+  var gYMin = parseFloat(document.getElementById('yMin').value);
+  var gYMax = parseFloat(document.getElementById('yMax').value);
+  if (isNaN(gYMin) || isNaN(gYMax) || gYMax <= gYMin) return;
+  chartVars.forEach(function(varName) {
+    var divId  = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
+    var yMinId = 'ymin_' + divId;
+    var yMaxId = 'ymax_' + divId;
+    var yMinEl = document.getElementById(yMinId);
+    var yMaxEl = document.getElementById(yMaxId);
+    if (!yMinEl || !yMaxEl) return;
+    yMinEl.value = gYMin;
+    yMaxEl.value = gYMax;
+    applyCardAxis(divId, yMinId, yMaxId);
+  });
 }
 
 /* ── Exportação ── */
