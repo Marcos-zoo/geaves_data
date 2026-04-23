@@ -637,6 +637,209 @@ tbody td { padding: 12px 18px; color: var(--mid); border-bottom: 1px solid rgba(
 .error-msg { color: var(--mid); line-height: 1.5; }
 
 /* ══════════════════════════════════════════════════════════════════
+   ABA 3 — ESTATÍSTICA DESCRITIVA
+══════════════════════════════════════════════════════════════════ */
+.desc-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 32px 64px;
+}
+
+/* Banner de contexto */
+.desc-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1.5px solid rgba(139,26,26,0.12);
+  border-radius: var(--radius);
+  padding: 16px 22px;
+  margin-bottom: 32px;
+  font-size: 0.92rem;
+  color: var(--mid);
+  box-shadow: 0 3px 12px var(--shadow);
+}
+
+.desc-banner-icon { font-size: 1.6rem; flex-shrink: 0; }
+.desc-banner strong { color: var(--dark); }
+
+/* Estado vazio */
+.desc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 55vh;
+  gap: 16px;
+  color: var(--mid);
+  text-align: center;
+  padding: 32px;
+}
+
+.desc-empty .big-icon { font-size: 3.5rem; }
+
+.desc-empty h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--rust);
+}
+
+.desc-empty p { font-size: 0.92rem; max-width: 400px; line-height: 1.6; }
+
+.desc-empty .btn-go {
+  background: linear-gradient(135deg, var(--rust), var(--amber));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 14px rgba(139,26,26,0.25);
+}
+
+.desc-empty .btn-go:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(139,26,26,0.30);
+}
+
+/* Seção por variável */
+.desc-section {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1.5px solid rgba(139,26,26,0.10);
+  box-shadow: 0 3px 14px var(--shadow);
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.desc-var-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 22px;
+  background: linear-gradient(90deg, var(--rust), var(--amber));
+}
+
+.desc-var-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.desc-var-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.70);
+  letter-spacing: 0.5px;
+}
+
+.desc-per-label {
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: var(--amber);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 22px 4px;
+}
+
+/* Tabela descritiva */
+.desc-table-wrap {
+  overflow-x: auto;
+  padding: 0 0 4px;
+}
+
+.desc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.desc-table thead tr {
+  background: #fef3e8;
+}
+
+.desc-table thead th {
+  color: var(--rust);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+  padding: 11px 16px;
+  text-align: right;
+  border-bottom: 2px solid rgba(139,26,26,0.12);
+  white-space: nowrap;
+}
+
+.desc-table thead th:first-child { text-align: left; }
+
+.desc-table tbody tr:nth-child(even) { background: #fdf9f5; }
+.desc-table tbody tr:nth-child(odd)  { background: #fff; }
+
+.desc-table tbody tr:hover { background: #fef3e8; transition: background 0.15s; }
+
+.desc-table tbody td {
+  padding: 10px 16px;
+  text-align: right;
+  color: var(--mid);
+  border-bottom: 1px solid rgba(139,26,26,0.06);
+  font-variant-numeric: tabular-nums;
+}
+
+.desc-table tbody td:first-child { text-align: left; }
+
+/* Linha GERAL */
+.global-row {
+  background: #f5ede0 !important;
+  font-weight: 600;
+}
+
+.global-row td { color: var(--dark) !important; }
+
+/* Coluna Tratamento */
+.tr-cell {
+  font-weight: 700;
+  color: var(--rust) !important;
+  font-size: 0.88rem;
+}
+
+/* Célula NA */
+.na-cell { color: var(--amber) !important; font-weight: 700; }
+
+/* ── Semáforo de CV ─────────────────────────────────────────── */
+.cv-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cv-low      { background: #d4f5d4; color: #1a6b1a; }
+.cv-medium   { background: #fef3c7; color: #7a5500; }
+.cv-high     { background: #ffe0c0; color: #7a3000; }
+.cv-veryhigh { background: #fde8e8; color: var(--rust); }
+
+/* Legenda do CV */
+.cv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.cv-legend-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mid);
+  letter-spacing: 0.5px;
+  margin-right: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    PLACEHOLDERS (abas futuras)
 ══════════════════════════════════════════════════════════════════ */
 .coming-soon {

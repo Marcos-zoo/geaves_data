@@ -367,12 +367,36 @@
       </div>
     </div><!-- /tab-upload -->
 
-    <!-- ── ABA 3: ESTATÍSTICA (placeholder) ────────────────────── -->
+    <!-- ── ABA 3: ESTATÍSTICA DESCRITIVA ──────────────────────── -->
     <div id="tab-descriptive" class="tab-panel">
-      <div class="coming-soon">
-        <span class="big-icon">📐</span>
-        <h2>Estatística Descritiva</h2>
-        <p>Esta aba será construída após a validação da aba de dados.</p>
+      <div class="desc-page">
+
+        <!-- Banner de contexto (preenchido por descriptive.js) -->
+        <div id="descBanner" class="desc-banner" style="display:none;"></div>
+
+        <!-- Legenda do CV -->
+        <div class="cv-legend" id="cvLegend" style="display:none;">
+          <span class="cv-legend-title">CV (Gomes, 1990):</span>
+          <span class="cv-badge cv-low">     &lt; 10% — Baixo</span>
+          <span class="cv-badge cv-medium">  10–20% — Médio</span>
+          <span class="cv-badge cv-high">    20–30% — Alto</span>
+          <span class="cv-badge cv-veryhigh">&gt; 30% — Muito alto</span>
+        </div>
+
+        <!-- Estado vazio — aparece quando não há dados carregados -->
+        <div class="desc-empty" id="descEmpty">
+          <span class="big-icon">📐</span>
+          <h2>Nenhum dado carregado</h2>
+          <p>Carregue e valide sua planilha na aba <strong>Dados</strong> para que a
+             estatística descritiva seja calculada automaticamente aqui.</p>
+          <button class="btn-go" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[1])">
+            📂 Ir para Dados
+          </button>
+        </div>
+
+        <!-- Conteúdo (preenchido por descriptive.js) -->
+        <div id="descContent" style="display:none;"></div>
+
       </div>
     </div>
 
@@ -403,6 +427,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="js/validation.js"></script>
   <script src="js/upload.js"></script>
+  <script src="js/descriptive.js"></script>
   <script src="js/tabs.js"></script>
 
 </body>
