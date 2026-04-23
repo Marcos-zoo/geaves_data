@@ -221,6 +221,38 @@ tbody td { padding: 12px 18px; color: var(--mid); border-bottom: 1px solid rgba(
 .desc-table thead tr { background: #fef3e8; }
 .desc-table thead th { color: var(--rust); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; padding: 11px 16px; text-align: right; border-bottom: 2px solid rgba(139,26,26,0.12); white-space: nowrap; }
 .desc-table thead th:first-child { text-align: left; }
+
+/* Tabela transposta — cabeçalho de tratamentos */
+.stat-col-hdr {
+  text-align: left !important;
+  color: var(--rust) !important;
+  background: #fef3e8;
+  min-width: 90px;
+}
+
+.global-col-hdr {
+  background: #f0e4d0 !important;
+  color: var(--rust) !important;
+}
+
+/* Rótulo da estatística (primeira coluna) */
+.stat-row-label {
+  font-weight: 700;
+  color: var(--rust) !important;
+  font-size: 0.82rem;
+  text-align: left !important;
+  background: #fef3e8;
+  white-space: nowrap;
+  padding: 10px 16px !important;
+  border-right: 2px solid rgba(139,26,26,0.12);
+}
+
+/* Coluna Geral */
+.global-col {
+  background: #f5ede0 !important;
+  font-weight: 600;
+  color: var(--dark) !important;
+}
 .desc-table tbody tr:nth-child(even) { background: #fdf9f5; }
 .desc-table tbody tr:nth-child(odd)  { background: #fff; }
 .desc-table tbody tr:hover { background: #fef3e8; transition: background 0.15s; }
@@ -667,344 +699,420 @@ footer strong { color: var(--gold); }
     Desenvolvido para uso acadêmico e de pesquisa
   </footer>
 
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-  /* ── ESTADO GLOBAL ─────────────────────────────────────────── */
-  var workbook    = null;
-  var activeSheet = null;
-  var parsedData  = null;
-  var decimalMode = null;
-  var ID_COLS     = ['TR', 'REP', 'PER'];
+/* ── ESTADO GLOBAL ─────────────────────────────────────────────── */
+const ID_COLS   = ['TR', 'REP', 'PER'];
+let workbook    = null;
+let activeSheet = null;
+let parsedData  = null;
+let decimalMode = null;
 
-  /* ── NAVEGAÇÃO ─────────────────────────────────────────────── */
-  function switchTab(tabId, btnEl) {
-    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    var panel = document.getElementById('tab-' + tabId);
-    if (panel) panel.classList.add('active');
-    if (btnEl) btnEl.classList.add('active');
-    if (tabId === 'descriptive') {
-      renderDescriptive();
-      var leg = document.getElementById('cvLegend');
-      if (leg) leg.style.display = parsedData ? 'flex' : 'none';
+/* ══ TABS ══════════════════════════════════════════════════════════ */
+function switchTab(tabId, btnEl) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+  if (tabId === 'descriptive') {
+    renderDescriptive();
+    const leg = document.getElementById('cvLegend');
+    if (leg) leg.style.display = parsedData ? 'flex' : 'none';
+  }
+}
+
+/* ══ UPLOAD ════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('dropzone');
+  const fi = document.getElementById('fileInput');
+  dz.addEventListener('click', () => fi.click());
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dz-hover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dz-hover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dz-hover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fi.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+});
+
+function handleFile(file) {
+  if (!/\.(xlsx|xls)$/i.test(file.name)) {
+    showFileInfo('Arquivo inválido. Envie um .xlsx ou .xls.', 'error'); return;
+  }
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      workbook = XLSX.read(e.target.result, { type: 'array' });
+      showFileInfo('<strong>' + file.name + '</strong> — ' + (file.size/1024).toFixed(1) + ' KB', 'ok');
+      populateSheetButtons(workbook.SheetNames);
+      resetResults();
+    } catch(err) { showFileInfo('Não foi possível ler o arquivo.', 'error'); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function showFileInfo(html, type) {
+  const el = document.getElementById('fileInfo');
+  el.innerHTML = html;
+  el.className = 'file-info ' + type;
+}
+
+function populateSheetButtons(names) {
+  document.getElementById('sheetCount').textContent = names.length;
+  const c = document.getElementById('sheetButtons');
+  c.innerHTML = '';
+  names.forEach(function(name) {
+    const btn = document.createElement('button');
+    btn.className   = 'sheet-pill';
+    btn.textContent = name;
+    btn.onclick     = function() { selectSheet(name, btn); };
+    c.appendChild(btn);
+  });
+  document.getElementById('sheetSection').style.display   = 'block';
+  document.getElementById('decimalSection').style.display = 'none';
+  document.getElementById('btnValidate').classList.add('hidden');
+  activeSheet = null;
+  parsedData  = null;
+}
+
+function selectSheet(name, btnEl) {
+  document.querySelectorAll('.sheet-pill').forEach(function(b) { b.classList.remove('active'); });
+  btnEl.classList.add('active');
+  activeSheet = name;
+  const raw = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header:1, raw:false, defval:'' });
+  if (raw.length < 2) {
+    showDecimalBadge('none');
+    parsedData = null;
+    document.getElementById('btnValidate').classList.add('hidden');
+    return;
+  }
+  const result = normalizeDecimals(raw);
+  decimalMode  = result.mode;
+  parsedData   = result.data;
+  showDecimalBadge(decimalMode);
+  document.getElementById('btnValidate').classList.remove('hidden');
+  document.getElementById('btnReset').classList.add('hidden');
+  resetResults();
+}
+
+function normalizeDecimals(raw) {
+  var commas = 0, points = 0;
+  for (var r = 1; r < raw.length; r++)
+    for (var c = 0; c < raw[r].length; c++) {
+      var v = String(raw[r][c]).trim();
+      if (!v || v.toUpperCase() === 'NA') continue;
+      if (/^\d+,\d+$/.test(v)) commas++;
+      if (/^\d+\.\d+$/.test(v)) points++;
     }
+  var mode = commas && !points ? 'comma' : points && !commas ? 'point' : commas && points ? 'mixed' : 'none';
+  var headers = raw[0].map(function(h) { return String(h).trim(); });
+  var data = [];
+  for (var r = 1; r < raw.length; r++) {
+    var row = raw[r];
+    if (row.every(function(c) { return !String(c).trim(); })) continue;
+    var obj = {};
+    headers.forEach(function(h, i) {
+      var cell = String(row[i] !== undefined && row[i] !== null ? row[i] : '').trim();
+      if (cell.toUpperCase() === 'NA') obj[h] = 'NA';
+      else if (!cell)                  obj[h] = '';
+      else {
+        var n = parseFloat(cell.replace(',', '.'));
+        obj[h] = isNaN(n) ? cell : n;
+      }
+    });
+    data.push(obj);
+  }
+  return { mode: mode, data: data };
+}
+
+function showDecimalBadge(mode) {
+  var M = {
+    comma: { cls:'dec-warn', text:'Virgula detectada. Convertido para ponto automaticamente.' },
+    point: { cls:'dec-ok',   text:'Ponto decimal. Nenhuma conversao necessaria.' },
+    mixed: { cls:'dec-err',  text:'Mistura de virgula e ponto! Verifique a planilha.' },
+    none:  { cls:'dec-info', text:'Nenhum decimal encontrado nesta aba.' }
+  };
+  var m = M[mode] || M.none;
+  var el = document.getElementById('decimalInfo');
+  el.className   = 'decimal-badge ' + m.cls;
+  el.textContent = m.text;
+  document.getElementById('decimalSection').style.display = 'block';
+}
+
+/* ══ VALIDATION ════════════════════════════════════════════════════ */
+function runValidationAndRender() {
+  if (!parsedData || !parsedData.length) return;
+  var headers = Object.keys(parsedData[0]);
+  var checks = [], errors = [];
+
+  var hasTR  = headers.some(function(h){ return h.toUpperCase()==='TR'; });
+  var hasREP = headers.some(function(h){ return h.toUpperCase()==='REP'; });
+  checks.push({ label:'Colunas obrigatorias TR e REP presentes', ok: hasTR && hasREP,
+    detail: !hasTR&&!hasREP?'TR e REP ausentes.':!hasTR?'TR ausente.':!hasREP?'REP ausente.':null });
+  if (!hasTR||!hasREP) errors.push({ rule:'Colunas obrigatorias', message:'TR e/ou REP nao encontradas.' });
+
+  var badSym = headers.filter(function(h){ return /[%$*@#!?&()/\\]/.test(h); });
+  checks.push({ label:'Cabecalhos sem simbolos proibidos', ok:!badSym.length,
+    detail: badSym.length ? 'Colunas: '+badSym.join(', ') : null });
+  if (badSym.length) errors.push({ rule:'Simbolos proibidos', message:badSym.join(', ') });
+
+  var badFmt = headers.filter(function(h){ return /[áéíóúãõâêîôûàçÁÉÍÓÚÃÕÂÊÎÔÛÀÇ]/.test(h) || / /.test(h); });
+  checks.push({ label:'Cabecalhos sem espacos ou acentos', ok:!badFmt.length,
+    detail: badFmt.length ? 'Colunas: '+badFmt.join(', ') : null });
+  if (badFmt.length) errors.push({ rule:'Espacos/acentos', message:badFmt.join(', ') });
+
+  var seen={}, dupes=[];
+  headers.forEach(function(h){ var k=h.toUpperCase(); if(seen[k]) dupes.push(h); seen[k]=true; });
+  checks.push({ label:'Sem siglas duplicadas', ok:!dupes.length,
+    detail: dupes.length ? 'Duplicatas: '+dupes.join(', ') : null });
+  if (dupes.length) errors.push({ rule:'Siglas duplicadas', message:dupes.join(', ') });
+
+  var empRows=[];
+  parsedData.forEach(function(row,i){
+    var ec=headers.filter(function(h){ var v=row[h]; return v===''||v===null||v===undefined; });
+    if(ec.length) empRows.push({row:i+2,cols:ec});
+  });
+  checks.push({ label:'Sem celulas vazias — parcelas perdidas devem ser NA', ok:!empRows.length,
+    detail: empRows.length ? empRows.length+' linha(s) com celula vazia' : null });
+  empRows.forEach(function(r){ errors.push({ rule:'Celula vazia', message:'Linha '+r.row+': use NA.' }); });
+
+  var varCols=headers.filter(function(h){ return ID_COLS.indexOf(h.toUpperCase())===-1; });
+  var nonNum=[];
+  parsedData.forEach(function(row,i){
+    varCols.forEach(function(col){
+      var v=row[col];
+      if(v==='NA'||v===''||v===null||v===undefined) return;
+      if(typeof v!=='number') nonNum.push({row:i+2,col:col,val:v});
+    });
+  });
+  checks.push({ label:'Variaveis de resposta numericas (ou NA)', ok:!nonNum.length,
+    detail: nonNum.length ? nonNum.length+' nao-numerica(s)' : null });
+  nonNum.slice(0,20).forEach(function(r){ errors.push({ rule:'Valor nao-numerico', message:'Linha '+r.row+', "'+r.col+'": "'+r.val+'"' }); });
+
+  checks.push({ label:'Separador decimal consistente', ok: decimalMode!=='mixed',
+    detail: decimalMode==='mixed' ? 'Mistura de virgula e ponto detectada.' : null });
+  if (decimalMode==='mixed') errors.push({ rule:'Decimal misto', message:'Mistura detectada.' });
+
+  renderResults(checks, errors, headers);
+  document.getElementById('btnReset').classList.remove('hidden');
+}
+
+function renderResults(checks, errors, headers) {
+  document.getElementById('resultsEmpty').style.display   = 'none';
+  document.getElementById('resultsContent').style.display = 'block';
+  var allOk  = !errors.length;
+  var banner = document.getElementById('summaryBanner');
+  banner.className = 'summary-banner ' + (allOk ? 'banner-ok' : 'banner-err');
+  banner.innerHTML = allOk
+    ? '<span class="banner-icon">Dados aprovados!</span><div><strong>Todas as '+checks.length+' regras GEAVES satisfeitas.</strong></div>'
+    : '<span class="banner-icon">aviso</span><div><strong>'+errors.length+' problema(s)</strong> em '+checks.filter(function(c){return !c.ok;}).length+' regra(s). Corrija antes de prosseguir.</div>';
+  document.getElementById('previewSheetName').textContent  = activeSheet;
+  document.getElementById('previewDimensions').textContent = parsedData.length+' linha(s) x '+headers.length+' coluna(s) — aba: "'+activeSheet+'"';
+  renderPreviewTable(headers);
+  document.getElementById('checklistItems').innerHTML = checks.map(function(c){
+    return '<div class="check-item '+(c.ok?'check-ok':'check-fail')+'"><span class="check-icon">'+(c.ok?'OK':'ERRO')+'</span><div><span class="check-label">'+c.label+'</span>'+(c.detail?'<span class="check-detail">'+c.detail+'</span>':'')+'</div></div>';
+  }).join('');
+  var eb = document.getElementById('errorDetails');
+  if (errors.length) {
+    eb.style.display='block';
+    document.getElementById('errorList').innerHTML=errors.map(function(e){
+      return '<div class="error-item"><span class="error-rule">'+e.rule+'</span><span class="error-msg">'+e.message+'</span></div>';
+    }).join('');
+  } else { eb.style.display='none'; }
+}
+
+function renderPreviewTable(headers) {
+  var html='<table><thead><tr>'+headers.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+  parsedData.slice(0,8).forEach(function(row){
+    html+='<tr>'+headers.map(function(h){
+      var v=row[h];
+      if(v==='NA') return '<td class="cell-na">NA</td>';
+      if(v===''||v===null||v===undefined) return '<td class="cell-empty">vazio</td>';
+      return '<td>'+v+'</td>';
+    }).join('')+'</tr>';
+  });
+  if(parsedData.length>8) html+='<tr><td colspan="'+headers.length+'" style="text-align:center;padding:8px;font-style:italic;">... mais '+(parsedData.length-8)+' linha(s)</td></tr>';
+  document.getElementById('previewTableWrap').innerHTML=html+'</tbody></table>';
+}
+
+function resetResults() {
+  document.getElementById('resultsEmpty').style.display   = 'flex';
+  document.getElementById('resultsContent').style.display = 'none';
+}
+
+function resetUpload() {
+  workbook=activeSheet=parsedData=decimalMode=null;
+  document.getElementById('fileInput').value              = '';
+  document.getElementById('fileInfo').className           = 'file-info hidden';
+  document.getElementById('sheetSection').style.display   = 'none';
+  document.getElementById('decimalSection').style.display = 'none';
+  document.getElementById('btnValidate').classList.add('hidden');
+  document.getElementById('btnReset').classList.add('hidden');
+  resetResults();
+}
+
+/* ══ DESCRIPTIVE STATISTICS ════════════════════════════════════════ */
+function renderDescriptive() {
+  var container = document.getElementById('descContent');
+  var empty     = document.getElementById('descEmpty');
+  var banner    = document.getElementById('descBanner');
+  if (!parsedData || !parsedData.length) {
+    empty.style.display='flex'; container.style.display='none'; banner.style.display='none'; return;
+  }
+  empty.style.display='none'; container.style.display='block';
+  var headers    = Object.keys(parsedData[0]);
+  var varCols    = headers.filter(function(h){ return ID_COLS.indexOf(h.toUpperCase())===-1; });
+  var trKey      = headers.find(function(h){ return h.toUpperCase()==='TR'; }) || 'TR';
+  var perKey     = headers.find(function(h){ return h.toUpperCase()==='PER'; }) || null;
+  var tSet={}, treatments=[];
+  parsedData.forEach(function(r){ if(!tSet[r[trKey]]){tSet[r[trKey]]=true; treatments.push(r[trKey]);} });
+  treatments.sort(function(a,b){return a-b;});
+  var periods=[null];
+  if(perKey){ var pSet={}; periods=[]; parsedData.forEach(function(r){ if(!pSet[r[perKey]]){pSet[r[perKey]]=true;periods.push(r[perKey]);} }); periods.sort(function(a,b){return a-b;}); }
+  banner.style.display='block';
+  banner.innerHTML='<span class="desc-banner-icon">Estatistica</span><div>Aba <strong>"'+activeSheet+'"</strong> — <strong>'+treatments.length+'</strong> trat. · <strong>'+varCols.length+'</strong> var. · <strong>'+parsedData.length+'</strong> linhas</div>';
+  container.innerHTML='';
+  varCols.forEach(function(varName){
+    var section=document.createElement('div');
+    section.className='desc-section';
+    section.innerHTML='<div class="desc-var-header"><span class="desc-var-name">'+varName+'</span><span class="desc-var-label">Estatistica descritiva por tratamento'+(perKey?' e periodo':'')+'</span></div>';
+    periods.forEach(function(per){
+      var perRows=perKey?parsedData.filter(function(r){return String(r[perKey])===String(per);}):parsedData;
+      if(perKey&&per!==null){var l=document.createElement('p');l.className='desc-per-label';l.textContent='Periodo: '+per;section.appendChild(l);}
+      var statsByTR=treatments.map(function(tr){
+        var rows=perRows.filter(function(r){return String(r[trKey])===String(tr);});
+        var values=rows.map(function(r){return r[varName];}).filter(function(v){return v!=='NA'&&v!==''&&v!==null&&v!==undefined&&typeof v==='number';});
+        return {tr:tr, stats:computeStats(values), naCount:rows.length-values.length};
+      });
+      section.appendChild(buildDescTable(statsByTR));
+    });
+    container.appendChild(section);
+  });
+}
+
+function computeStats(values) {
+  var n=values.length;
+  if(!n) return {n:0,mean:null,median:null,sd:null,cv:null,min:null,max:null,se:null};
+  var sorted=values.slice().sort(function(a,b){return a-b;});
+  var sum=values.reduce(function(a,v){return a+v;},0), mean=sum/n;
+  var mid=Math.floor(n/2), median=n%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
+  var variance=n>1?values.reduce(function(a,v){return a+Math.pow(v-mean,2);},0)/(n-1):0;
+  var sd=Math.sqrt(variance), se=n>1?sd/Math.sqrt(n):0;
+  var cv=mean?(sd/Math.abs(mean))*100:null;
+  return {n:n,mean:fmt(mean,3),median:fmt(median,3),sd:fmt(sd,3),se:fmt(se,3),cv:cv!==null?fmt(cv,2):null,min:fmt(sorted[0],3),max:fmt(sorted[n-1],3)};
+}
+
+function buildDescTable(statsByTR) {
+  var wrap = document.createElement('div');
+  wrap.className = 'desc-table-wrap';
+
+  /* ── Cabeçalho: Estatística | TR1 | TR2 | ... | Geral ── */
+  var h = '<table class="desc-table"><thead><tr>';
+  h += '<th class="stat-col-hdr">Tratamentos</th>';
+  statsByTR.forEach(function(x) {
+    h += '<th>' + x.tr + '</th>';
+  });
+  h += '<th class="global-col-hdr">Geral</th>';
+  h += '</tr></thead><tbody>';
+
+  /* ── Pré-calcula linha Geral ── */
+  var totalN = statsByTR.reduce(function(s,x){ return s+x.stats.n; }, 0);
+  var gM=null, gMin=null, gMax=null, tNA=0, pSD=null, gCV=null, totalSE=null;
+  if (totalN) {
+    gM = statsByTR.reduce(function(s,x){ return s+(x.stats.n?x.stats.mean*x.stats.n:0); },0) / totalN;
+    var validSt = statsByTR.filter(function(x){ return x.stats.n; });
+    gMin = Math.min.apply(null, validSt.map(function(x){ return x.stats.min; }));
+    gMax = Math.max.apply(null, validSt.map(function(x){ return x.stats.max; }));
+    tNA  = statsByTR.reduce(function(s,x){ return s+x.naCount; }, 0);
+    var pV = statsByTR.reduce(function(s,x){
+      return x.stats.n<2 ? s : s+(x.stats.n-1)*Math.pow(x.stats.sd,2);
+    },0) / Math.max(totalN - validSt.length, 1);
+    pSD  = Math.sqrt(pV);
+    gCV  = gM ? (pSD/Math.abs(gM))*100 : null;
+    totalSE = totalN>1 ? pSD/Math.sqrt(totalN) : null;
   }
 
-  /* ── UPLOAD ────────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', function() {
-    var dz = document.getElementById('dropzone');
-    var fi = document.getElementById('fileInput');
-    if (!dz || !fi) return;
-    dz.addEventListener('click', function() { fi.click(); });
-    dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dz-hover'); });
-    dz.addEventListener('dragleave', function() { dz.classList.remove('dz-hover'); });
-    dz.addEventListener('drop', function(e) {
-      e.preventDefault(); dz.classList.remove('dz-hover');
-      var f = e.dataTransfer.files[0]; if (f) handleFile(f);
+  /* ── Definição das linhas de estatística ── */
+  var rows = [
+    { key:'n',      label:'n',        decimals:0,  isCV:false },
+    { key:'mean',   label:'Média',    decimals:4,  isCV:false },
+    { key:'median', label:'Mediana',  decimals:4,  isCV:false },
+    { key:'sd',     label:'DP',       decimals:4,  isCV:false },
+    { key:'se',     label:'EP',       decimals:6,  isCV:false },
+    { key:'cv',     label:'CV (%)',   decimals:2,  isCV:true  },
+    { key:'min',    label:'Mín',      decimals:4,  isCV:false },
+    { key:'max',    label:'Máx',      decimals:4,  isCV:false },
+    { key:'na',     label:'NA',       decimals:0,  isCV:false },
+  ];
+
+  /* Valores gerais indexados por key */
+  var generalVals = {
+    n:      totalN,
+    mean:   gM,
+    median: null,
+    sd:     pSD,
+    se:     totalSE,
+    cv:     gCV,
+    min:    gMin,
+    max:    gMax,
+    na:     tNA
+  };
+
+  rows.forEach(function(row, rowIdx) {
+    var isOdd = rowIdx % 2 === 0;
+    h += '<tr>';
+
+    /* Célula rótulo da estatística */
+    h += '<td class="stat-row-label">' + row.label + '</td>';
+
+    /* Célula de cada tratamento */
+    statsByTR.forEach(function(x) {
+      var val = row.key === 'na' ? x.naCount : x.stats[row.key];
+      var s   = x.stats;
+
+      if (row.isCV) {
+        /* CV com semáforo de cor */
+        if (val !== null && val !== '—' && !isNaN(val)) {
+          h += '<td><span class="cv-badge ' + cvCls(val) + '">' + parseFloat(val).toFixed(row.decimals) + '%</span></td>';
+        } else {
+          h += '<td>—</td>';
+        }
+      } else if (row.key === 'na') {
+        h += '<td class="' + (val > 0 ? 'na-cell' : '') + '">' + val + '</td>';
+      } else if (val === null || val === undefined || val === '—' || !s.n) {
+        h += '<td>—</td>';
+      } else {
+        h += '<td>' + parseFloat(val).toFixed(row.decimals) + '</td>';
+      }
     });
-    fi.addEventListener('change', function(e) { var f = e.target.files[0]; if (f) handleFile(f); });
+
+    /* Célula Geral */
+    var gVal = generalVals[row.key];
+    if (row.isCV) {
+      if (gVal !== null && !isNaN(gVal)) {
+        h += '<td class="global-col"><span class="cv-badge ' + cvCls(gVal) + '">' + parseFloat(gVal).toFixed(row.decimals) + '%</span></td>';
+      } else { h += '<td class="global-col">—</td>'; }
+    } else if (row.key === 'na') {
+      h += '<td class="global-col ' + (gVal > 0 ? 'na-cell' : '') + '">' + gVal + '</td>';
+    } else if (row.key === 'median') {
+      h += '<td class="global-col">—</td>';
+    } else if (gVal === null || gVal === undefined || !totalN) {
+      h += '<td class="global-col">—</td>';
+    } else {
+      h += '<td class="global-col">' + parseFloat(gVal).toFixed(row.decimals) + '</td>';
+    }
+
+    h += '</tr>';
   });
 
-  function handleFile(file) {
-    if (!/\.(xlsx|xls)$/i.test(file.name)) { showFileInfo('❌ Arquivo inválido. Envie um .xlsx ou .xls.', 'error'); return; }
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        workbook = XLSX.read(e.target.result, { type: 'array' });
-        showFileInfo('✔ <strong>' + file.name + '</strong> — ' + (file.size/1024).toFixed(1) + ' KB', 'ok');
-        populateSheetButtons(workbook.SheetNames);
-        resetResults();
-      } catch(err) { showFileInfo('❌ Não foi possível ler o arquivo.', 'error'); }
-    };
-    reader.readAsArrayBuffer(file);
-  }
+  wrap.innerHTML = h + '</tbody></table>';
+  return wrap;
+}
 
-  function showFileInfo(html, type) {
-    var el = document.getElementById('fileInfo');
-    el.innerHTML = html; el.className = 'file-info ' + type;
-  }
-
-  function populateSheetButtons(names) {
-    document.getElementById('sheetCount').textContent = names.length;
-    var container = document.getElementById('sheetButtons');
-    container.innerHTML = '';
-    names.forEach(function(name) {
-      var btn = document.createElement('button');
-      btn.className = 'sheet-pill'; btn.textContent = name;
-      btn.onclick = function() { selectSheet(name, btn); };
-      container.appendChild(btn);
-    });
-    document.getElementById('sheetSection').style.display   = 'block';
-    document.getElementById('decimalSection').style.display = 'none';
-    document.getElementById('btnValidate').classList.add('hidden');
-    activeSheet = null; parsedData = null;
-  }
-
-  function selectSheet(name, btnEl) {
-    document.querySelectorAll('.sheet-pill').forEach(function(b) { b.classList.remove('active'); });
-    btnEl.classList.add('active');
-    activeSheet = name;
-    var ws  = workbook.Sheets[name];
-    var raw = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
-    if (raw.length < 2) {
-      showDecimalSection('none'); parsedData = null;
-      document.getElementById('btnValidate').classList.add('hidden'); return;
-    }
-    var res = normalizeDecimals(raw);
-    decimalMode = res.mode; parsedData = res.data;
-    showDecimalSection(decimalMode);
-    document.getElementById('btnValidate').classList.remove('hidden');
-    document.getElementById('btnReset').classList.add('hidden');
-    resetResults();
-  }
-
-  function normalizeDecimals(raw) {
-    var cc = 0, pc = 0;
-    for (var r = 1; r < raw.length; r++)
-      for (var c = 0; c < raw[r].length; c++) {
-        var cell = String(raw[r][c]).trim();
-        if (cell === '' || cell.toUpperCase() === 'NA') continue;
-        if (/^\d+,\d+$/.test(cell)) cc++;
-        if (/^\d+\.\d+$/.test(cell)) pc++;
-      }
-    var mode = cc>0&&pc===0?'comma':pc>0&&cc===0?'point':cc>0&&pc>0?'mixed':'none';
-    var headers = raw[0].map(function(h){return String(h).trim();});
-    var data = [];
-    for (var r = 1; r < raw.length; r++) {
-      var row = raw[r];
-      if (row.every(function(c){return String(c).trim()=='';})) continue;
-      var obj = {};
-      headers.forEach(function(h,i) {
-        var cell = String(row[i]!==undefined?row[i]:'').trim();
-        if (cell.toUpperCase()==='NA') obj[h]='NA';
-        else if (cell==='') obj[h]='';
-        else { var n=parseFloat(cell.replace(',','.')); obj[h]=isNaN(n)?cell:n; }
-      });
-      data.push(obj);
-    }
-    return {mode:mode, data:data};
-  }
-
-  function showDecimalSection(mode) {
-    var M = {
-      comma:{icon:'🔄',cls:'dec-warn',text:'Vírgula detectada. Convertido automaticamente para ponto.'},
-      point:{icon:'✔', cls:'dec-ok',  text:'Ponto decimal detectado. Nenhuma conversão necessária.'},
-      mixed:{icon:'⚠️',cls:'dec-err', text:'Mistura de vírgula e ponto! Verifique a planilha.'},
-      none: {icon:'ℹ️',cls:'dec-info',text:'Nenhum número decimal encontrado nesta aba.'}
-    };
-    var m = M[mode]||M['none'];
-    var el = document.getElementById('decimalInfo');
-    el.className = 'decimal-badge '+m.cls;
-    el.innerHTML = '<span>'+m.icon+'</span> '+m.text;
-    document.getElementById('decimalSection').style.display = 'block';
-  }
-
-  /* ── VALIDAÇÃO ─────────────────────────────────────────────── */
-  function runValidationAndRender() {
-    if (!parsedData||parsedData.length===0) return;
-    var headers = Object.keys(parsedData[0]);
-    var checks=[], errors=[];
-
-    // R1
-    var hasTR  = headers.some(function(h){return h.toUpperCase()==='TR';});
-    var hasREP = headers.some(function(h){return h.toUpperCase()==='REP';});
-    checks.push({label:'Colunas obrigatórias TR e REP presentes',ok:hasTR&&hasREP,
-      detail:!hasTR&&!hasREP?'TR e REP ausentes.':!hasTR?'TR ausente.':!hasREP?'REP ausente.':null});
-    if (!hasTR||!hasREP) errors.push({rule:'Colunas obrigatórias',message:'TR e/ou REP não encontradas.'});
-
-    // R2
-    var badSym = headers.filter(function(h){return /[%$*°@#!?&()/\\]/.test(h);});
-    checks.push({label:'Cabeçalhos sem símbolos proibidos',ok:badSym.length===0,detail:badSym.length?'Com símbolo: '+badSym.join(', '):null});
-    if (badSym.length) errors.push({rule:'Símbolos proibidos',message:badSym.join(', ')});
-
-    // R3
-    var badFmt = headers.filter(function(h){return /[áéíóúãõâêîôûàäëïöüçÁÉÍÓÚÃÕÂÊÎÔÛÀÄËÏÖÜÇ]/.test(h)||/ /.test(h);});
-    checks.push({label:'Cabeçalhos sem espaços ou acentos',ok:badFmt.length===0,detail:badFmt.length?'Problemáticas: '+badFmt.join(', '):null});
-    if (badFmt.length) errors.push({rule:'Espaços/acentos',message:badFmt.join(', ')});
-
-    // R4
-    var seen={},dupes=[];
-    headers.forEach(function(h){var k=h.toUpperCase();if(seen[k])dupes.push(h);seen[k]=true;});
-    checks.push({label:'Sem siglas duplicadas',ok:dupes.length===0,detail:dupes.length?'Duplicatas: '+dupes.join(', '):null});
-    if (dupes.length) errors.push({rule:'Siglas duplicadas',message:dupes.join(', ')});
-
-    // R5
-    var emptyR=[];
-    parsedData.forEach(function(row,i){
-      var ec=headers.filter(function(h){var v=row[h];return v===''||v===null||v===undefined;});
-      if(ec.length) emptyR.push({row:i+2,cols:ec});
-    });
-    checks.push({label:'Sem células vazias — use NA para parcelas perdidas',ok:emptyR.length===0,
-      detail:emptyR.length?emptyR.length+' linha(s) vazia(s): '+emptyR.slice(0,5).map(function(r){return 'L'+r.row;}).join(', ')+(emptyR.length>5?'…':''):null});
-    emptyR.forEach(function(r){errors.push({rule:'Célula vazia',message:'Linha '+r.row+': ['+r.cols.join(', ')+'] — use NA.'});});
-
-    // R6
-    var varC=headers.filter(function(h){return ID_COLS.indexOf(h.toUpperCase())===-1;});
-    var nonN=[];
-    parsedData.forEach(function(row,i){
-      varC.forEach(function(col){
-        var v=row[col];
-        if(v==='NA'||v===''||v===null||v===undefined) return;
-        if(typeof v!=='number') nonN.push({row:i+2,col:col,val:v});
-      });
-    });
-    checks.push({label:'Variáveis de resposta numéricas (ou NA)',ok:nonN.length===0,
-      detail:nonN.length?nonN.length+' não-numérica(s): '+nonN.slice(0,3).map(function(r){return 'L'+r.row+' "'+r.col+'"';}).join('; ')+(nonN.length>3?'…':''):null});
-    nonN.slice(0,20).forEach(function(r){errors.push({rule:'Valor não-numérico',message:'Linha '+r.row+', "'+r.col+'": "'+r.val+'"'});});
-
-    // R7
-    checks.push({label:'Separador decimal consistente',ok:decimalMode!=='mixed',
-      detail:decimalMode==='mixed'?'Mistura de vírgula e ponto detectada.':null});
-    if(decimalMode==='mixed') errors.push({rule:'Decimal misto',message:'Mistura de vírgula e ponto.'});
-
-    // R8 — nome da aba
-    var shOk = !/[áéíóúãõâêîôûàäëïöüçÁÉÍÓÚÃÕÂÊÎÔÛÀÄËÏÖÜÇ]/.test(activeSheet) && !/ /.test(activeSheet) && activeSheet.length<=20;
-    checks.push({label:'Nome da aba sem acento, espaço ou excesso de caracteres',ok:shOk,
-      detail:shOk?null:'Aba "'+activeSheet+'" não segue o padrão GEAVES.'});
-    if(!shOk) errors.push({rule:'Nome de aba',message:'Aba "'+activeSheet+'" — use minúsculas, sem acento, máx 20 chars.'});
-
-    // Render
-    document.getElementById('resultsEmpty').style.display   = 'none';
-    document.getElementById('resultsContent').style.display = 'block';
-    var banner = document.getElementById('summaryBanner');
-    if (errors.length===0) {
-      banner.className = 'summary-banner banner-ok';
-      banner.innerHTML = '<span class="banner-icon">🎉</span><div><strong>Dados aprovados!</strong> Todas as '+checks.length+' regras GEAVES satisfeitas.</div>';
-    } else {
-      banner.className = 'summary-banner banner-err';
-      banner.innerHTML = '<span class="banner-icon">⚠️</span><div><strong>'+errors.length+' problema(s)</strong> em '+checks.filter(function(c){return !c.ok;}).length+' regra(s). Corrija antes de prosseguir.</div>';
-    }
-    document.getElementById('previewSheetName').textContent  = activeSheet;
-    document.getElementById('previewDimensions').textContent = parsedData.length+' linha(s) × '+headers.length+' coluna(s)  ·  aba: "'+activeSheet+'"';
-
-    var pRows = parsedData.slice(0,8);
-    var ptHtml = '<table><thead><tr>'+headers.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
-    pRows.forEach(function(row){
-      ptHtml+='<tr>'+headers.map(function(h){
-        var v=row[h];
-        if(v==='NA') return '<td class="cell-na">NA</td>';
-        if(v===''||v===null||v===undefined) return '<td class="cell-empty">⚠ vazio</td>';
-        return '<td>'+v+'</td>';
-      }).join('')+'</tr>';
-    });
-    if(parsedData.length>8) ptHtml+='<tr><td colspan="'+headers.length+'" style="text-align:center;color:var(--mid);font-style:italic;padding:10px;">… mais '+(parsedData.length-8)+' linha(s)</td></tr>';
-    ptHtml+='</tbody></table>';
-    document.getElementById('previewTableWrap').innerHTML = ptHtml;
-
-    document.getElementById('checklistItems').innerHTML = checks.map(function(c){
-      return '<div class="check-item '+(c.ok?'check-ok':'check-fail')+'">'
-        +'<span class="check-icon">'+(c.ok?'✔':'✘')+'</span>'
-        +'<div><span class="check-label">'+c.label+'</span>'
-        +(c.detail?'<span class="check-detail">'+c.detail+'</span>':'')
-        +'</div></div>';
-    }).join('');
-
-    var eb = document.getElementById('errorDetails');
-    if(errors.length){
-      eb.style.display='block';
-      document.getElementById('errorList').innerHTML=errors.map(function(e){
-        return '<div class="error-item"><span class="error-rule">'+e.rule+'</span><span class="error-msg">'+e.message+'</span></div>';
-      }).join('');
-    } else { eb.style.display='none'; }
-
-    document.getElementById('btnReset').classList.remove('hidden');
-  }
-
-  function resetResults() {
-    document.getElementById('resultsEmpty').style.display   = 'flex';
-    document.getElementById('resultsContent').style.display = 'none';
-  }
-
-  function resetUpload() {
-    workbook=activeSheet=parsedData=decimalMode=null;
-    document.getElementById('fileInput').value='';
-    document.getElementById('fileInfo').className='file-info hidden';
-    document.getElementById('sheetSection').style.display='none';
-    document.getElementById('decimalSection').style.display='none';
-    document.getElementById('btnValidate').classList.add('hidden');
-    document.getElementById('btnReset').classList.add('hidden');
-    resetResults();
-  }
-
-  /* ── ESTATÍSTICA DESCRITIVA ────────────────────────────────── */
-  function renderDescriptive() {
-    var container=document.getElementById('descContent');
-    var empty=document.getElementById('descEmpty');
-    var banner=document.getElementById('descBanner');
-    if (!parsedData||parsedData.length===0) {
-      empty.style.display='flex';container.style.display='none';banner.style.display='none';return;
-    }
-    empty.style.display='none';container.style.display='block';
-    var headers  = Object.keys(parsedData[0]);
-    var varCols  = headers.filter(function(h){return ID_COLS.indexOf(h.toUpperCase())===-1;});
-    var trKey    = headers.find(function(h){return h.toUpperCase()==='TR';})||'TR';
-    var perKey   = headers.find(function(h){return h.toUpperCase()==='PER';})||null;
-    var treats   = [...new Set(parsedData.map(function(r){return r[trKey];}))].sort(function(a,b){return a-b;});
-    var periods  = perKey?[...new Set(parsedData.map(function(r){return r[perKey];}))].sort(function(a,b){return a-b;}):[null];
-
-    banner.style.display='block';
-    banner.innerHTML='<span class="desc-banner-icon">📐</span><div>Aba <strong>"'+activeSheet+'"</strong> — <strong>'+treats.length+'</strong> tratamento(s) · <strong>'+(periods.filter(function(p){return p!==null;}).length||'—')+'</strong> período(s) · <strong>'+varCols.length+'</strong> variável(is) · <strong>'+parsedData.length+'</strong> linha(s)</div>';
-
-    container.innerHTML='';
-    varCols.forEach(function(varName){
-      var sec=document.createElement('div');
-      sec.className='desc-section';
-      sec.innerHTML='<div class="desc-var-header"><span class="desc-var-name">'+varName+'</span><span class="desc-var-label">Estatística descritiva por tratamento'+(perKey?' e período':'')+'</span></div>';
-      periods.forEach(function(per){
-        var perRows=perKey?parsedData.filter(function(r){return String(r[perKey])===String(per);}):parsedData;
-        if(perKey&&per!==null){var lbl=document.createElement('p');lbl.className='desc-per-label';lbl.textContent='Período: '+per;sec.appendChild(lbl);}
-        var statsByTR=treats.map(function(tr){
-          var rows=perRows.filter(function(r){return String(r[trKey])===String(tr);});
-          var vals=rows.map(function(r){return r[varName];}).filter(function(v){return v!=='NA'&&v!==''&&v!==null&&v!==undefined&&typeof v==='number';});
-          return {tr:tr,stats:calcStats(vals),naCount:rows.length-vals.length};
-        });
-        sec.appendChild(buildTable(statsByTR));
-      });
-      container.appendChild(sec);
-    });
-  }
-
-  function calcStats(vals) {
-    var n=vals.length;
-    if(n===0) return {n:0,mean:null,median:null,sd:null,cv:null,min:null,max:null,se:null};
-    var sorted=vals.slice().sort(function(a,b){return a-b;});
-    var mean=vals.reduce(function(a,v){return a+v;},0)/n;
-    var mid=Math.floor(n/2);
-    var median=n%2!==0?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
-    var variance=n>1?vals.reduce(function(a,v){return a+Math.pow(v-mean,2);},0)/(n-1):0;
-    var sd=Math.sqrt(variance);
-    var se=n>1?sd/Math.sqrt(n):0;
-    var cv=mean!==0?(sd/Math.abs(mean))*100:null;
-    return {n:n,mean:fmt(mean,3),median:fmt(median,3),sd:fmt(sd,3),se:fmt(se,3),cv:cv!==null?fmt(cv,2):null,min:fmt(sorted[0],3),max:fmt(sorted[n-1],3)};
-  }
-
-  function buildTable(statsByTR) {
-    var wrap=document.createElement('div');
-    wrap.className='desc-table-wrap';
-    var h='<table class="desc-table"><thead><tr><th>Tratamento</th><th>n</th><th>Média</th><th>Mediana</th><th>DP</th><th>EP</th><th>CV (%)</th><th>Mín</th><th>Máx</th><th>NA</th></tr></thead><tbody>';
-    statsByTR.forEach(function(x){
-      var s=x.stats,cvT=s.cv!==null?'<span class="cv-badge '+cvCls(s.cv)+'">'+s.cv.toFixed(2)+'%</span>':'—';
-      h+='<tr><td class="tr-cell">T'+x.tr+'</td><td>'+s.n+'</td><td>'+(s.n>0?s.mean:'—')+'</td><td>'+(s.n>0?s.median:'—')+'</td><td>'+(s.n>0?s.sd:'—')+'</td><td>'+(s.n>0?s.se:'—')+'</td><td>'+cvT+'</td><td>'+(s.n>0?s.min:'—')+'</td><td>'+(s.n>0?s.max:'—')+'</td><td class="'+(x.naCount>0?'na-cell':'')+'">'+x.naCount+'</td></tr>';
-    });
-    var tN=statsByTR.reduce(function(s,x){return s+x.stats.n;},0);
-    if(tN>0){
-      var gM=statsByTR.reduce(function(s,x){return s+(x.stats.n>0?x.stats.mean*x.stats.n:0);},0)/tN;
-      var gMn=Math.min.apply(null,statsByTR.filter(function(x){return x.stats.n>0;}).map(function(x){return x.stats.min;}));
-      var gMx=Math.max.apply(null,statsByTR.filter(function(x){return x.stats.n>0;}).map(function(x){return x.stats.max;}));
-      var tNA=statsByTR.reduce(function(s,x){return s+x.naCount;},0);
-      var pV=statsByTR.reduce(function(s,x){return x.stats.n<2?s:s+(x.stats.n-1)*Math.pow(x.stats.sd,2);},0)/Math.max(tN-statsByTR.filter(function(x){return x.stats.n>0;}).length,1);
-      var gSD=Math.sqrt(pV);
-      var gCV=gM!==0?(gSD/Math.abs(gM))*100:null;
-      var cvT=gCV!==null?'<span class="cv-badge '+cvCls(gCV)+'">'+gCV.toFixed(2)+'%</span>':'—';
-      h+='<tr class="global-row"><td class="tr-cell">Geral</td><td>'+tN+'</td><td>'+fmt(gM,3)+'</td><td>—</td><td>'+fmt(gSD,3)+'</td><td>—</td><td>'+cvT+'</td><td>'+fmt(gMn,3)+'</td><td>'+fmt(gMx,3)+'</td><td class="'+(tNA>0?'na-cell':'')+'">'+tNA+'</td></tr>';
-    }
-    h+='</tbody></table>';
-    wrap.innerHTML=h;
-    return wrap;
-  }
-
-  function cvCls(cv){return cv<10?'cv-low':cv<20?'cv-medium':cv<30?'cv-high':'cv-veryhigh';}
-  function fmt(v,d){if(v===null||v===undefined||isNaN(v))return '—';return parseFloat(v.toFixed(d));}
+function cvCls(cv){return cv<10?'cv-low':cv<20?'cv-medium':cv<30?'cv-high':'cv-veryhigh';}
+function fmt(v,d){if(v===null||v===undefined||isNaN(v))return '—';return parseFloat(v.toFixed(d));}
   </script>
 </body>
 </html>
