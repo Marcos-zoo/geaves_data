@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataAves – GEAVES/UFRPE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── DESIGN TOKENS ─────────────────────────────────────────── */
+    :root {
+      --rust:        #8B1A1A;   /* vermelho escuro do galo */
+      --amber:       #C8540A;   /* laranja do galo        */
+      --gold:        #E8900A;   /* dourado do galo        */
+      --cream:       #FDF6EC;   /* fundo quente           */
+      --dark:        #2A1005;   /* marrom escuro texto    */
+      --mid:         #6B3A1F;   /* marrom médio           */
+      --surface:     #FFFFFF;
+      --shadow:      rgba(139,26,26,0.12);
+      --radius:      12px;
+      --nav-h:       68px;
+      --transition:  0.3s ease;
+    }
+
+    /* ── RESET ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Source Sans 3', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* ── NAV / TABS ─────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--rust);
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-right: 28px;
+      flex-shrink: 0;
+    }
+
+    .nav-logo img {
+      height: 48px;
+      width: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    .nav-logo-text {
+      line-height: 1.1;
+    }
+
+    .nav-logo-text .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+
+    .nav-logo-text .sub {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 32px;
+      background: rgba(255,255,255,0.2);
+      margin-right: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tab-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      background: var(--amber);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(200,84,10,0.45);
+    }
+
+    .tab-btn .icon { font-size: 1rem; }
+
+    /* ── MAIN CONTENT ───────────────────────────────────────────── */
+    main { min-height: calc(100vh - var(--nav-h)); }
+
+    .tab-panel { display: none; animation: fadeIn 0.4s ease; }
+    .tab-panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HOME ───────────────────────────────────────────────────── */
+    .home-hero {
+      background: linear-gradient(135deg, var(--rust) 0%, #5A0E0E 55%, var(--dark) 100%);
+      padding: 72px 48px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .home-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 50%, rgba(232,144,10,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 80% 30%, rgba(200,84,10,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #fff;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .hero-title span { color: var(--gold); }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .hero-desc {
+      max-width: 640px;
+      margin: 0 auto 36px;
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.75;
+    }
+
+    .hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gold);
+      color: var(--dark);
+      font-family: 'Source Sans 3', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 28px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 18px rgba(232,144,10,0.4);
+      letter-spacing: 0.3px;
+    }
+
+    .hero-btn:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(232,144,10,0.45);
+    }
+
+    /* ── ABOUT SECTION ──────────────────────────────────────────── */
+    .home-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 32px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.85rem;
+      color: var(--rust);
+      margin-bottom: 14px;
+      line-height: 1.25;
+    }
+
+    .section-lead {
+      font-size: 1.05rem;
+      color: var(--mid);
+      line-height: 1.8;
+      max-width: 720px;
+      margin-bottom: 48px;
+    }
+
+    /* ── CARDS ──────────────────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      border: 1.5px solid rgba(139,26,26,0.10);
+      box-shadow: 0 4px 20px var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--rust), var(--gold));
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(139,26,26,0.18);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--rust);
+      margin-bottom: 10px;
+    }
+
+    .card-text {
+      font-size: 0.93rem;
+      color: var(--mid);
+      line-height: 1.7;
+    }
+
+    /* ── INSTRUCTIONS ───────────────────────────────────────────── */
+    .instructions-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1.5px solid rgba(139,26,26,0.12);
+      box-shadow: 0 4px 20px var(--shadow);
+      overflow: hidden;
+      margin-bottom: 64px;
+    }
+
+    .instr-header {
+      background: linear-gradient(90deg, var(--rust), var(--amber));
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .instr-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .steps {
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--rust), var(--amber));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(139,26,26,0.3);
+    }
+
+    .step-content h4 {
+      font-weight: 600;
+      font-size: 0.97rem;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 0.88rem;
+      color: var(--mid);
+      line-height: 1.65;
+    }
+
+    /* ── FORMAT TABLE ───────────────────────────────────────────── */
+    .format-section {
+      margin-bottom: 64px;
+    }
+
+    .format-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1.5px solid rgba(139,26,26,0.12);
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead tr {
+      background: linear-gradient(90deg, var(--rust), var(--amber));
+    }
+
+    thead th {
+      color: #fff;
+      font-weight: 600;
+      padding: 14px 18px;
+      text-align: left;
+      letter-spacing: 0.3px;
+    }
+
+    tbody tr:nth-child(even) { background: #fef3e8; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+
+    tbody td {
+      padding: 12px 18px;
+      color: var(--mid);
+      border-bottom: 1px solid rgba(139,26,26,0.06);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .tag-req  { background: #fde8e8; color: var(--rust); }
+    .tag-opt  { background: #fef3e2; color: var(--amber); }
+    .tag-num  { background: #e8f4fd; color: #1a5a8b; }
+    .tag-cat  { background: #e8fde8; color: #1a7a1a; }
+
+    /* ── FOOTER ─────────────────────────────────────────────────── */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 28px 24px;
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+    }
+
+    footer strong { color: var(--gold); }
+
+    /* ── PLACEHOLDER (abas futuras) ─────────────────────────────── */
+    .coming-soon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      gap: 16px;
+      color: var(--mid);
+    }
+
+    .coming-soon .big-icon { font-size: 4rem; }
+
+    .coming-soon h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--rust);
+    }
+
+    .coming-soon p { font-size: 0.95rem; color: var(--mid); }
+
+    /* ── RULES GRID ─────────────────────────────────────────────── */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+
+    .rule-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1.5px solid rgba(139,26,26,0.10);
+      box-shadow: 0 3px 14px var(--shadow);
+      display: flex;
+      gap: 16px;
+      padding: 22px 20px;
+      transition: var(--transition);
+    }
+
+    .rule-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(139,26,26,0.16);
+    }
+
+    .rule-icon { font-size: 1.8rem; flex-shrink: 0; margin-top: 2px; }
+
+    .rule-body h4 { font-weight: 600; font-size: 0.95rem; color: var(--dark); margin-bottom: 6px; }
+
+    .rule-body p { font-size: 0.87rem; color: var(--mid); line-height: 1.65; margin-bottom: 10px; }
+
+    .rule-body code { background: #f3e8d8; color: var(--rust); padding: 1px 6px; border-radius: 4px; font-size: 0.83rem; }
+
+    .rule-example {
+      background: #fef8f0;
+      border: 1px solid rgba(200,84,10,0.18);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      color: var(--mid);
+    }
+
+    .ex-label { font-weight: 700; color: #1a7a1a; margin-right: 4px; }
+    .ex-label.ex-bad { color: var(--rust); }
+    .cell-na { color: var(--amber); font-weight: 700; }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      nav { padding: 0 12px; gap: 2px; }
+      .nav-logo-text .brand { font-size: 1rem; }
+      .tab-btn { padding: 7px 10px; font-size: 0.78rem; }
+      .home-hero { padding: 48px 20px 56px; }
+      .home-body { padding: 40px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVIGATION ─────────────────────────────────────────────── -->
+  <nav>
+    <div class="nav-logo">
+      <img src="logo.png" alt="GEAVES Logo" />
+      <div class="nav-logo-text">
+        <div class="brand">DataAves</div>
+        <div class="sub">GEAVES · UFRPE</div>
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+
+    <button class="tab-btn active" onclick="switchTab('home', this)">
+      <span class="icon">🏠</span> Início
+    </button>
+    <button class="tab-btn" onclick="switchTab('upload', this)">
+      <span class="icon">📂</span> Dados
+    </button>
+    <button class="tab-btn" onclick="switchTab('descriptive', this)">
+      <span class="icon">📊</span> Estatística
+    </button>
+    <button class="tab-btn" onclick="switchTab('charts', this)">
+      <span class="icon">📈</span> Gráficos
+    </button>
+  </nav>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- ABA 1: HOME ─────────────────────────────────────────────── -->
+    <div id="tab-home" class="tab-panel active">
+
+      <section class="home-hero">
+        <img src="logo.png" alt="GEAVES" class="hero-logo" />
+        <p class="hero-subtitle">GEAVES · UFRPE</p>
+        <h1 class="hero-title"><span>DataAves</span></h1>
+        <p class="hero-desc">
+          Plataforma de verificação preliminar e análise exploratória de dados
+          experimentais em avicultura. Desenvolvida pelo Grupo de Estudos em
+          Avicultura e Suinocultura da UFRPE.
+        </p>
+        <button class="hero-btn" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[1])">
+          ⚡ Começar agora
+        </button>
+      </section>
+
+      <div class="home-body">
+
+        <!-- O que é -->
+        <p class="section-label">Sobre a plataforma</p>
+        <h2 class="section-title">O que é o DataAves?</h2>
+        <p class="section-lead">
+          O DataAves é uma ferramenta <strong>100% web</strong> desenvolvida para auxiliar
+          pesquisadores e estudantes de pós-graduação na inspeção rápida de planilhas
+          experimentais antes da análise estatística formal. Todo o processamento
+          ocorre <em>localmente no seu navegador</em> — nenhum dado é enviado a servidores externos.
+        </p>
+
+        <!-- Cards de funcionalidades -->
+        <div class="cards-grid">
+          <div class="card">
+            <span class="card-icon">🔍</span>
+            <h3 class="card-title">Verificação de formato</h3>
+            <p class="card-text">
+              Detecta automaticamente colunas obrigatórias, tipos de dados incorretos,
+              células em branco e inconsistências de codificação nos seus dados experimentais.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-icon">📐</span>
+            <h3 class="card-title">Estatística descritiva</h3>
+            <p class="card-text">
+              Gera média, mediana, desvio-padrão, CV%, mínimo e máximo
+              por variável e por tratamento — na mesma tela, sem copiar e colar.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-icon">📊</span>
+            <h3 class="card-title">Gráficos automáticos</h3>
+            <p class="card-text">
+              Detecta o número de variáveis e organiza o layout dos gráficos
+              (linhas, barras e boxplot) automaticamente — 8 variáveis = 2×4,
+              10 variáveis = 2×5, etc.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-icon">🔒</span>
+            <h3 class="card-title">100% local</h3>
+            <p class="card-text">
+              Seus dados permanecem no seu computador. Não há upload para nuvem,
+              sem cadastro, sem rastreamento. Funciona até offline após o primeiro acesso.
+            </p>
+          </div>
+        </div>
+
+        <!-- Instruções de uso -->
+        <div class="instructions-box">
+          <div class="instr-header">
+            <span>📋</span>
+            <h3>Como usar o DataAves</h3>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>Prepare sua planilha Excel seguindo os padrões GEAVES</h4>
+                <p>Organize os dados no formato padrão descrito abaixo. A primeira linha deve conter os cabeçalhos (siglas das variáveis). Cada linha subsequente representa uma repetição (baia, gaiola, boxe…). Variáveis de categorias diferentes devem estar em abas separadas do mesmo arquivo.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>Acesse a aba "Dados" e faça o upload</h4>
+                <p>Clique em "Dados" no menu superior. Arraste o arquivo .xlsx ou clique para selecioná-lo. O sistema validará automaticamente o formato e exibirá um relatório detalhado de conformidade com as regras do grupo.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>Confira a estatística descritiva</h4>
+                <p>Após a validação bem-sucedida, acesse a aba "Estatística" para visualizar a distribuição e resumo de cada variável por tratamento e fase experimental.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <h4>Explore os gráficos</h4>
+                <p>Acesse a aba "Gráficos" para visualizar seus dados em gráficos de linhas, barras e boxplot. O layout é gerado automaticamente com base no número de variáveis detectadas (ex.: 8 variáveis → grade 2×4).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regras GEAVES ──────────────────────────────────────────── -->
+        <div class="format-section">
+          <p class="section-label">Padrões obrigatórios do grupo</p>
+          <h2 class="section-title">Regras de organização de dados — GEAVES</h2>
+          <p class="section-lead">
+            Estas regras foram estabelecidas pelo grupo para garantir padronização e
+            reprodutibilidade entre experimentos. O DataAves verifica automaticamente
+            cada uma delas ao carregar sua planilha.
+          </p>
+
+          <div class="rules-grid">
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">📊</div>
+              <div class="rule-body">
+                <h4>Use apenas médias das repetições por fase</h4>
+                <p>Coloque a média de cada repetição para cada fase experimental, <strong>não os dados brutos individuais</strong>. Os dados brutos devem estar em arquivo separado e ser enviados ao professor responsável.</p>
+                <div class="rule-example">
+                  <span class="ex-label">✔ Correto</span>
+                  TR=1 · REP=1 · Fase1: BWG=44 · FC=1,477
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">🏷️</div>
+              <div class="rule-body">
+                <h4>Siglas em inglês, sem símbolos</h4>
+                <p>Todos os cabeçalhos devem ser siglas em inglês conforme o padrão do grupo. <strong>Nunca use símbolos</strong> como %, $, *, ° nos títulos das colunas.</p>
+                <div class="rule-example">
+                  <span class="ex-label ex-bad">✘ Errado</span> Albumen% &nbsp;|&nbsp;
+                  <span class="ex-label">✔ Correto</span> alb_p
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">🔡</div>
+              <div class="rule-body">
+                <h4>Sem espaços, acentos ou palavras completas</h4>
+                <p>Use sempre siglas curtas sem acento e sem espaço. Palavras separadas ou nomes completos não são aceitos. Underline <code>_</code> é permitido para separar partes da sigla.</p>
+                <div class="rule-example">
+                  <span class="ex-label ex-bad">✘ Errado</span> Percentagem de álbum &nbsp;|&nbsp;
+                  <span class="ex-label">✔ Correto</span> alb_p
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">🚫</div>
+              <div class="rule-body">
+                <h4>Sem siglas repetidas</h4>
+                <p>Cada variável deve ter uma sigla única no arquivo. Siglas duplicadas — mesmo entre abas diferentes — causam ambiguidade na análise e serão sinalizadas como erro.</p>
+                <div class="rule-example">
+                  <span class="ex-label ex-bad">✘ Errado</span> BWG, BWG &nbsp;|&nbsp;
+                  <span class="ex-label">✔ Correto</span> bwg1, bwg2
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">🔲</div>
+              <div class="rule-body">
+                <h4>Use NA para parcelas perdidas</h4>
+                <p>Quando uma observação não puder ser registrada (parcela perdida, animal morto, falha de coleta), <strong>escreva NA</strong> na célula. Nunca deixe a célula em branco — células vazias são interpretadas como erro de preenchimento.</p>
+                <div class="rule-example">
+                  <span class="ex-label ex-bad">✘ Errado</span> célula vazia &nbsp;|&nbsp;
+                  <span class="ex-label">✔ Correto</span> NA
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card rule-ok">
+              <div class="rule-icon">📑</div>
+              <div class="rule-body">
+                <h4>Variáveis por categoria em abas separadas</h4>
+                <p>Separe as variáveis por categoria em abas (sheets) diferentes dentro do mesmo arquivo .xlsx. Cada aba deve ter nome curto, em minúsculas e sem acento.</p>
+                <div class="rule-example">
+                  <span class="ex-label ex-bad">✘ Errado</span> "Desempenho Produtivo" &nbsp;|&nbsp;
+                  <span class="ex-label">✔ Correto</span> desempenho · qualidade · bioquimico
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /rules-grid -->
+        </div>
+
+        <!-- Formato da planilha ──────────────────────────────────── -->
+        <div class="format-section">
+          <p class="section-label">Estrutura da planilha</p>
+          <h2 class="section-title">Colunas obrigatórias e variáveis de resposta</h2>
+          <p class="section-lead">
+            A estrutura abaixo reflete o padrão GEAVES baseado nos dados experimentais do grupo
+            (ex.: experimentos com frangos de corte, poedeiras, codornas). As três primeiras colunas
+            são identificadoras obrigatórias; as demais são as variáveis de resposta mensuradas.
+          </p>
+
+          <div class="format-table-wrap" style="margin-bottom: 28px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Coluna</th>
+                  <th>Obrigatoriedade</th>
+                  <th>Tipo</th>
+                  <th>Descrição / Exemplo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>TR</strong></td>
+                  <td><span class="tag tag-req">Obrigatória</span></td>
+                  <td><span class="tag tag-cat">Categórico</span></td>
+                  <td>Tratamento — número ou código do grupo experimental (1, 2, 3…)</td>
+                </tr>
+                <tr>
+                  <td><strong>REP</strong></td>
+                  <td><span class="tag tag-req">Obrigatória</span></td>
+                  <td><span class="tag tag-num">Numérico</span></td>
+                  <td>Repetição — número da baia, gaiola ou boxe (1, 2, 3…)</td>
+                </tr>
+                <tr>
+                  <td><strong>PER</strong></td>
+                  <td><span class="tag tag-opt">Opcional</span></td>
+                  <td><span class="tag tag-num">Numérico</span></td>
+                  <td>Período/fase experimental (1, 2, 3… ou "1-7", "7-14"…). Obrigatória quando há mais de uma fase.</td>
+                </tr>
+                <tr>
+                  <td><em>VAR_1 … VAR_N</em></td>
+                  <td><span class="tag tag-req">Obrigatória</span></td>
+                  <td><span class="tag tag-num">Numérico</span></td>
+                  <td>Variáveis de resposta em siglas inglesas sem símbolo. Ex.: BWG, FI, FC, EW, EO, alb_p, ca, cmr…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Exemplo visual da planilha -->
+          <p class="section-label">Exemplo real de planilha aceita</p>
+          <div class="format-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>TR</th><th>REP</th><th>PER</th>
+                  <th>BWG</th><th>FI</th><th>FC</th><th>EW</th><th>EO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td>1</td><td>1</td><td>44</td><td>65</td><td>1.477</td><td>65</td><td>95</td></tr>
+                <tr><td>1</td><td>2</td><td>1</td><td>41</td><td>63</td><td>1.537</td><td>63</td><td>95</td></tr>
+                <tr><td>2</td><td>1</td><td>1</td><td>45</td><td>64</td><td>1.422</td><td>62</td><td class="cell-na">NA</td></tr>
+                <tr><td>2</td><td>2</td><td>1</td><td>45</td><td>62</td><td>1.378</td><td>61</td><td>95</td></tr>
+                <tr><td>3</td><td>1</td><td>1</td><td>45</td><td>63</td><td>1.400</td><td>65</td><td>95</td></tr>
+                <tr><td>3</td><td>6</td><td>1</td><td>43</td><td>68</td><td>1.581</td><td>63</td><td>93</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.8rem; color:var(--mid); margin-top:10px;">
+            ⚠️ Note que a parcela perdida (TR=2, REP=1, EO) está preenchida com <strong>NA</strong> — nunca deixe em branco.
+            Cada aba do arquivo representa uma categoria de variáveis (desempenho, qualidade, bioquimico…).
+          </p>
+        </div>
+
+      </div><!-- /home-body -->
+    </div><!-- /tab-home -->
+
+    <!-- ABA 2: UPLOAD (placeholder) ─────────────────────────────── -->
+    <div id="tab-upload" class="tab-panel">
+      <div class="coming-soon">
+        <span class="big-icon">📂</span>
+        <h2>Upload e Verificação de Dados</h2>
+        <p>Esta aba está em construção. Em breve: upload de .xlsx com validação automática.</p>
+      </div>
+    </div>
+
+    <!-- ABA 3: ESTATÍSTICA (placeholder) ───────────────────────── -->
+    <div id="tab-descriptive" class="tab-panel">
+      <div class="coming-soon">
+        <span class="big-icon">📊</span>
+        <h2>Estatística Descritiva</h2>
+        <p>Esta aba será construída após a validação da aba de dados.</p>
+      </div>
+    </div>
+
+    <!-- ABA 4: GRÁFICOS (placeholder) ─────────────────────────── -->
+    <div id="tab-charts" class="tab-panel">
+      <div class="coming-soon">
+        <span class="big-icon">📈</span>
+        <h2>Visualização Gráfica</h2>
+        <p>Linhas, barras e boxplot — layout automático por número de variáveis.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+  <footer>
+    <strong>DataAves</strong> · GEAVES – Grupo de Estudos em Avicultura e Suinocultura ·
+    Universidade Federal Rural de Pernambuco (UFRPE) ·
+    Desenvolvido para uso acadêmico e de pesquisa
+  </footer>
+
+  <!-- ── TAB SCRIPT ─────────────────────────────────────────────── -->
+  <script>
+    function switchTab(tabId, btnEl) {
+      // Remove active de todos os painéis e botões
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      // Ativa o painel e o botão corretos
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
