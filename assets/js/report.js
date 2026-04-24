@@ -15,12 +15,29 @@ export async function generateFullPDF() {
 
     // --- CABEÇALHO DO RELATÓRIO ---
     const header = `
-      <div style="text-align: center; border-bottom: 2px solid #8B1A1A; margin-bottom: 30px; padding-bottom: 10px;">
-        <h1 style="margin: 0; color: #8B1A1A;">Relatório Técnico DataAves</h1>
-        <p style="margin: 5px 0;">GEAVES - Grupo de Estudos em Avicultura (UFRPE)</p>
-        <p style="font-size: 0.85rem; color: #6B3A1F;">Data do Relatório: ${new Date().toLocaleDateString('pt-BR')} | Aba: ${globalState.activeSheet}</p>
+      <div style="font-family: 'Source Sans 3', sans-serif; margin-bottom: 35px;">
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 2.4rem; color: #8B1A1A; letter-spacing: 0.5px;">DataAves</h1>
+          <h2 style="margin: 5px 0 15px 0; font-size: 1.05rem; color: #C8540A; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Relatório de Análise Exploratória</h2>
+          
+          <p style="margin: 0; font-size: 1rem; color: #2A1005;"><strong>GEAVES</strong> – Grupo de Estudos em Avicultura (UFRPE)</p>
+          <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: #6B3A1F; font-style: italic;">Desenvolvido por Dr. Marcos Santos</p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background-color: #FDF6EC; border-top: 2px solid #8B1A1A; border-bottom: 2px solid #8B1A1A; border-radius: 4px;">
+          <span style="font-size: 0.95rem; color: #2A1005;">
+            <strong>Aba analisada:</strong> 
+            <span style="background: #E8900A; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-left: 5px;">${globalState.activeSheet}</span>
+          </span>
+          <span style="font-size: 0.95rem; color: #2A1005;">
+            <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+
       </div>
     `;
+    
     element.innerHTML += header;
 
     // --- SEÇÃO 1: ESTATÍSTICA ---
