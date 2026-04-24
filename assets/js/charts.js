@@ -1,7 +1,7 @@
 // assets/js/charts.js
 import { globalState, ID_COLS } from './state.js';
 
-let chartType   = 'bar';    // 'bar' | 'line' | 'box' | 'violin'
+let chartType   = 'bar';    // 'bar' | 'line' | 'box' | 'violin' | 'heatmap'
 let chartLayout = 'grid';   // 'grid' | 'single'
 let errorType   = 'sd';     // 'sd' | 'se'
 let perMode     = 'treatments'; // 'treatments' | 'periods'
@@ -34,6 +34,13 @@ function refreshCharts() {
   const grid = document.getElementById('chartsGrid');
   const nav  = document.getElementById('chartsNav');
   grid.innerHTML = '';
+
+  // ── DESVIO PARA O MAPA DE CALOR ──
+  // O Mapa de Calor é um gráfico único de Matriz, não segue a regra de "Cards"
+  if (chartType === 'heatmap') {
+    renderCorrelationHeatmap(grid);
+    return;
+  }
 
   const headers = Object.keys(globalState.parsedData[0]);
   const trKey   = headers.find(h => h.toUpperCase()==='TR') || 'TR';
@@ -94,7 +101,6 @@ function refreshCharts() {
 
     grid.appendChild(card);
 
-    // ── GERAÇÃO DAS LINHAS (TRACES) ──
     let traces = [];
     if (chartType === 'box') {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'box');
@@ -106,7 +112,6 @@ function refreshCharts() {
       traces = buildTreatmentTraces(varName, trKey, perKey, treatments, periods);
     }
 
-    // ── CÁLCULO INTELIGENTE DE MÍNIMOS E MÁXIMOS (O Segredo dos 20%) ──
     let tMin = Infinity, tMax = -Infinity;
     traces.forEach(t => {
       if (!t.y) return;
@@ -114,7 +119,6 @@ function refreshCharts() {
         if (yVal === null) return;
         let yLow = yVal, yHigh = yVal;
         
-        // Se tiver barra de erro, calcula o topo da barra para não cortar
         if (t.error_y && t.error_y.array && t.error_y.array[i]) {
             yHigh += t.error_y.array[i];
             if (chartType !== 'bar') yLow -= t.error_y.array[i];
@@ -125,23 +129,122 @@ function refreshCharts() {
       });
     });
     
-    // Tratamento de falhas (se todos os dados forem vazios ou iguais)
     if (tMin === Infinity) { tMin = 0; tMax = 1; }
     if (tMin === tMax) { tMin -= 1; tMax += 1; }
 
-    // ── CRIAÇÃO DO LAYOUT COM O NOVO CÁLCULO ──
     let layout = buildPlotLayout(varName, treatments, periods, tMin, tMax);
 
     window.Plotly.newPlot(divId, traces, layout, {
       responsive: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d','select2d','autoScale2d']
     });
 
-    // Mantém as caixinhas sincronizadas visualmente
     const globalMinVal = document.getElementById('yMin').value;
     const globalMaxVal = document.getElementById('yMax').value;
     if (globalMinVal !== "") document.getElementById(yMinId).value = globalMinVal;
     if (globalMaxVal !== "") document.getElementById(yMaxId).value = globalMaxVal;
   });
+}
+
+// ── FUNÇÃO MATEMÁTICA: CORRELAÇÃO DE PEARSON (r) ──
+function calculatePearson(x, y) {
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  let n = 0;
+  
+  for (let i = 0; i < x.length; i++) {
+    const valX = x[i];
+    const valY = y[i];
+    
+    // Só calcula se os dois valores existirem e forem números válidos (Ignora NA)
+    if (typeof valX === 'number' && typeof valY === 'number' && !isNaN(valX) && !isNaN(valY)) {
+      sumX += valX;
+      sumY += valY;
+      sumXY += valX * valY;
+      sumX2 += valX * valX;
+      sumY2 += valY * valY;
+      n++;
+    }
+  }
+  
+  if (n <= 1) return null; // Sem dados suficientes
+  
+  const numerator = (n * sumXY) - (sumX * sumY);
+  const denominator = Math.sqrt(((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)));
+  
+  if (denominator === 0) return 0;
+  return numerator / denominator;
+}
+
+// ── RENDERIZAÇÃO DO MAPA DE CALOR ──
+function renderCorrelationHeatmap(grid) {
+  grid.className = 'charts-grid single-mode'; // Força visualização grande
+  document.getElementById('chartsNav').style.display = 'none'; // Esconde menu de navegação
+
+  const matrix = [];
+  const textMatrix = [];
+  
+  // Constrói a Matriz de Correlação
+  for (let i = 0; i < chartVars.length; i++) {
+    matrix[i] = [];
+    textMatrix[i] = [];
+    const varY = chartVars[i];
+    const valsY = globalState.parsedData.map(r => r[varY]);
+
+    for (let j = 0; j < chartVars.length; j++) {
+      const varX = chartVars[j];
+      const valsX = globalState.parsedData.map(r => r[varX]);
+      
+      const r = calculatePearson(valsX, valsY);
+      matrix[i][j] = r;
+      textMatrix[i][j] = r !== null ? r.toFixed(2) : 'NA';
+    }
+  }
+
+  const divId = 'chart_heatmap';
+  const card = document.createElement('div');
+  card.className = 'chart-card';
+  card.innerHTML = `
+    <div class="chart-card-title">
+      <span>Correlação de Pearson (r)</span>
+      <button class="chart-dl-btn" onclick="downloadChart('${divId}','Matriz_Correlacao')">⬇ PNG</button>
+    </div>
+    <div class="chart-card-body">
+      <div id="${divId}" style="width:100%;height:650px;"></div>
+    </div>`;
+  
+  grid.appendChild(card);
+
+  // Paleta customizada GEAVES: Ferrugem (-1) -> Creme (0) -> Azul Escuro (+1)
+  const customColorscale = [
+    [0.0, '#8B1A1A'], // Negativo forte (Vermelho)
+    [0.5, '#FDF6EC'], // Neutro (Creme)
+    [1.0, '#1A5276']  // Positivo forte (Azul)
+  ];
+
+  const trace = {
+    z: matrix,
+    x: chartVars,
+    y: chartVars,
+    type: 'heatmap',
+    text: textMatrix,
+    texttemplate: "%{text}",
+    colorscale: customColorscale, 
+    zmin: -1,
+    zmax: 1,
+    hoverinfo: 'x+y+z',
+    showscale: true,
+    colorbar: { title: 'Pearson (r)', titleside: 'right' }
+  };
+
+  const layout = {
+    margin: { l: 80, r: 20, t: 40, b: 80 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: '#fdf9f5',
+    font: { family:'Source Sans 3, sans-serif', size:12, color:'#2A1005' },
+    xaxis: { tickangle: -45 },
+    yaxis: { autorange: 'reversed' } // Inverte o eixo Y para a diagonal ficar do topo-esquerdo para baixo-direito
+  };
+
+  window.Plotly.newPlot(divId, [trace], layout, {responsive: true, displaylogo: false});
 }
 
 
@@ -278,15 +381,12 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
 
   const catArray = perMode === 'periods' && hasPer && periods ? periods.map(String) : treatments.map(String);
 
-  // O SEGREDO DO 20%: Subtrai 20% do mínimo natural e soma 15% ao máximo
-    let defaultMin = tMin - Math.abs(tMin) * 0.10;
-    let defaultMax = tMax + Math.abs(tMax) * 0.10;
+  let defaultMin = tMin - Math.abs(tMin) * 0.10;
+  let defaultMax = tMax + Math.abs(tMax) * 0.05;
 
-  // Se o usuário digitou só um, o outro continua sendo automático!
   let finalMin = (globalMinVal !== "" && !isNaN(parseFloat(globalMinVal))) ? parseFloat(globalMinVal) : defaultMin;
   let finalMax = (globalMaxVal !== "" && !isNaN(parseFloat(globalMaxVal))) ? parseFloat(globalMaxVal) : defaultMax;
 
-  // Proteção: não deixar o mínimo ser maior que o máximo
   if (finalMin >= finalMax) finalMax = finalMin + 1;
 
   const layout = {
@@ -306,7 +406,14 @@ window.setChartType = (type, btn) => {
   chartType = type;
   document.querySelectorAll('#chartTypeGroup .toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('errorBarGroup').style.display = (type === 'box' || type === 'violin') ? 'none' : 'flex';
+  
+  // Esconde elementos que não fazem sentido no Mapa de Calor ou Violino/Boxplot
+  document.getElementById('errorBarGroup').style.display = (type === 'box' || type === 'violin' || type === 'heatmap') ? 'none' : 'flex';
+  
+  // Esconde controle de Layout no Mapa de Calor, pois ele é sempre "Single"
+  document.getElementById('layoutGroup').style.opacity = (type === 'heatmap') ? '0.3' : '1';
+  document.getElementById('layoutGroup').style.pointerEvents = (type === 'heatmap') ? 'none' : 'auto';
+
   refreshCharts();
 };
 
@@ -349,7 +456,6 @@ window.applyCardAxis = (divId, yMinId, yMaxId) => {
   const yMinVal = document.getElementById(yMinId).value;
   const yMaxVal = document.getElementById(yMaxId).value;
 
-  // Analisa os dados desenhados atualmente para saber a base caso o input esteja vazio
   let tMin = Infinity, tMax = -Infinity;
   el.data.forEach(t => {
       if (!t.y) return;
@@ -368,11 +474,8 @@ window.applyCardAxis = (divId, yMinId, yMaxId) => {
   if (tMin === Infinity) { tMin = 0; tMax = 1; }
   if (tMin === tMax) { tMin -= 1; tMax += 1; }
 
- 
-  let defaultMin = tMin - Math.abs(tMin) * 0.30;
+  let defaultMin = tMin - Math.abs(tMin) * 0.10;
   let defaultMax = tMax + Math.abs(tMax) * 0.05;
-  
-
 
   let finalMin = (yMinVal !== "" && !isNaN(parseFloat(yMinVal))) ? parseFloat(yMinVal) : defaultMin;
   let finalMax = (yMaxVal !== "" && !isNaN(parseFloat(yMaxVal))) ? parseFloat(yMaxVal) : defaultMax;
@@ -395,7 +498,6 @@ window.propagateGlobalY = () => {
     yMinEl.value = globalMin;
     yMaxEl.value = globalMax;
 
-    // Dispara a atualização para cada gráfico aceitando inputs independentes
     window.applyCardAxis(divId, 'ymin_'+divId, 'ymax_'+divId);
   });
 };
@@ -405,11 +507,19 @@ window.downloadChart = (divId, varName) => {
 };
 
 window.exportCurrentPNG = () => {
+  if (chartType === 'heatmap') {
+    window.downloadChart('chart_heatmap', 'Matriz_Correlacao');
+    return;
+  }
   const varName = chartLayout==='single' ? chartVars[currentIdx] : chartVars[0];
   window.downloadChart('chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_'), varName);
 };
 
 window.exportAllPNG = () => {
+  if (chartType === 'heatmap') {
+    window.downloadChart('chart_heatmap', 'Matriz_Correlacao');
+    return;
+  }
   chartVars.forEach(varName => {
     const el = document.getElementById('chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_'));
     if (el) window.Plotly.downloadImage(el, { format:'png', filename:'DataAves_'+varName, width:1200, height:700, scale:2 });
