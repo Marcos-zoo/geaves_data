@@ -5,369 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DataAves – GEAVES/UFRPE</title>
 
-  <!-- Fontes -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet" />
 
-  <!-- Estilos inline — garante funcionamento no GitHub Pages sem dependência de caminho -->
-  <style>
-/* ── DESIGN TOKENS ─────────────────────────────────────────────── */
-:root {
-  --rust:        #8B1A1A;
-  --amber:       #C8540A;
-  --gold:        #E8900A;
-  --cream:       #FDF6EC;
-  --dark:        #2A1005;
-  --mid:         #6B3A1F;
-  --surface:     #FFFFFF;
-  --shadow:      rgba(139,26,26,0.12);
-  --radius:      12px;
-  --nav-h:       68px;
-  --transition:  0.3s ease;
-}
-
-/* ── RESET ──────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
-
-/* ── NAVEGAÇÃO ──────────────────────────────────────────────────── */
-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: var(--rust); height: var(--nav-h);
-  display: flex; align-items: center; padding: 0 32px; gap: 4px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-}
-.nav-logo { display: flex; align-items: center; gap: 12px; margin-right: 28px; flex-shrink: 0; }
-.nav-logo img { height: 48px; width: 48px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-.nav-logo-text { line-height: 1.1; }
-.nav-logo-text .brand { font-family: 'Playfair Display', serif; font-size: 1.35rem; color: var(--gold); letter-spacing: 0.5px; }
-.nav-logo-text .sub { font-size: 0.65rem; color: rgba(255,255,255,0.65); letter-spacing: 1.5px; text-transform: uppercase; }
-.nav-divider { width: 1px; height: 32px; background: rgba(255,255,255,0.2); margin-right: 12px; }
-.tab-btn {
-  background: transparent; border: none; color: rgba(255,255,255,0.7);
-  font-family: 'Source Sans 3', sans-serif; font-size: 0.88rem; font-weight: 600;
-  letter-spacing: 0.4px; padding: 8px 16px; border-radius: 8px; cursor: pointer;
-  transition: var(--transition); white-space: nowrap; display: flex; align-items: center; gap: 7px;
-}
-.tab-btn:hover  { background: rgba(255,255,255,0.12); color: #fff; }
-.tab-btn.active { background: var(--amber); color: #fff; box-shadow: 0 2px 12px rgba(200,84,10,0.45); }
-.tab-btn .icon  { font-size: 1rem; }
-
-/* ── PAINEL PRINCIPAL ───────────────────────────────────────────── */
-main { min-height: calc(100vh - var(--nav-h)); }
-.tab-panel { display: none; animation: fadeIn 0.4s ease; }
-.tab-panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ── ABA 1: HOME ────────────────────────────────────────────────── */
-.home-hero {
-  background: linear-gradient(135deg, var(--rust) 0%, #5A0E0E 55%, var(--dark) 100%);
-  padding: 72px 48px 80px; text-align: center; position: relative; overflow: hidden;
-}
-.home-hero::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 20% 50%, rgba(232,144,10,0.12) 0%, transparent 70%),
-              radial-gradient(ellipse 40% 60% at 80% 30%, rgba(200,84,10,0.10) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-logo {
-  width: 120px; height: 120px; object-fit: contain; margin-bottom: 20px;
-  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
-  animation: logoFloat 3s ease-in-out infinite;
-}
-@keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.hero-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3rem); color: #fff; margin-bottom: 8px; }
-.hero-title span { color: var(--gold); }
-.hero-subtitle { font-size: 1rem; color: rgba(255,255,255,0.65); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
-.hero-desc { max-width: 640px; margin: 0 auto 36px; font-size: 1.05rem; color: rgba(255,255,255,0.82); line-height: 1.75; }
-.hero-btn {
-  display: inline-flex; align-items: center; gap: 10px;
-  background: var(--gold); color: var(--dark); font-family: 'Source Sans 3', sans-serif;
-  font-weight: 700; font-size: 0.95rem; padding: 14px 28px; border-radius: 50px; border: none;
-  cursor: pointer; transition: var(--transition); box-shadow: 0 4px 18px rgba(232,144,10,0.4);
-}
-.hero-btn:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,144,10,0.45); }
-
-.home-body { max-width: 1100px; margin: 0 auto; padding: 64px 32px; }
-.section-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); margin-bottom: 10px; }
-.section-title { font-family: 'Playfair Display', serif; font-size: 1.85rem; color: var(--rust); margin-bottom: 14px; line-height: 1.25; }
-.section-lead { font-size: 1.05rem; color: var(--mid); line-height: 1.8; max-width: 720px; margin-bottom: 48px; }
-
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 64px; }
-.card {
-  background: var(--surface); border-radius: var(--radius); padding: 28px 24px;
-  border: 1.5px solid rgba(139,26,26,0.10); box-shadow: 0 4px 20px var(--shadow);
-  transition: var(--transition); position: relative; overflow: hidden;
-}
-.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--rust), var(--gold)); }
-.card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(139,26,26,0.18); }
-.card-icon  { font-size: 2rem; margin-bottom: 14px; display: block; }
-.card-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--rust); margin-bottom: 10px; }
-.card-text  { font-size: 0.93rem; color: var(--mid); line-height: 1.7; }
-
-.instructions-box { background: var(--surface); border-radius: var(--radius); border: 1.5px solid rgba(139,26,26,0.12); box-shadow: 0 4px 20px var(--shadow); overflow: hidden; margin-bottom: 64px; }
-.instr-header { background: linear-gradient(90deg, var(--rust), var(--amber)); padding: 18px 28px; display: flex; align-items: center; gap: 12px; }
-.instr-header h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; }
-.steps { padding: 32px 28px; display: flex; flex-direction: column; gap: 20px; }
-.step { display: flex; gap: 18px; align-items: flex-start; }
-.step-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--rust), var(--amber)); color: #fff; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(139,26,26,0.3); }
-.step-content h4 { font-weight: 600; font-size: 0.97rem; color: var(--dark); margin-bottom: 4px; }
-.step-content p  { font-size: 0.88rem; color: var(--mid); line-height: 1.65; }
-
-.rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 48px; }
-.rule-card { background: var(--surface); border-radius: var(--radius); border: 1.5px solid rgba(139,26,26,0.10); box-shadow: 0 3px 14px var(--shadow); display: flex; gap: 16px; padding: 22px 20px; transition: var(--transition); }
-.rule-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(139,26,26,0.16); }
-.rule-icon { font-size: 1.8rem; flex-shrink: 0; margin-top: 2px; }
-.rule-body h4 { font-weight: 600; font-size: 0.95rem; color: var(--dark); margin-bottom: 6px; }
-.rule-body p  { font-size: 0.87rem; color: var(--mid); line-height: 1.65; margin-bottom: 10px; }
-.rule-body code { background: #f3e8d8; color: var(--rust); padding: 1px 6px; border-radius: 4px; font-size: 0.83rem; }
-.rule-example { background: #fef8f0; border: 1px solid rgba(200,84,10,0.18); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; color: var(--mid); }
-.ex-label { font-weight: 700; color: #1a7a1a; margin-right: 4px; }
-.ex-label.ex-bad { color: var(--rust); }
-
-.format-section { margin-bottom: 64px; }
-.format-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1.5px solid rgba(139,26,26,0.12); box-shadow: 0 4px 20px var(--shadow); }
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-thead tr { background: linear-gradient(90deg, var(--rust), var(--amber)); }
-thead th { color: #fff; font-weight: 600; padding: 14px 18px; text-align: left; letter-spacing: 0.3px; }
-tbody tr:nth-child(even) { background: #fef3e8; }
-tbody tr:nth-child(odd)  { background: #fff; }
-tbody td { padding: 12px 18px; color: var(--mid); border-bottom: 1px solid rgba(139,26,26,0.06); }
-.tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
-.tag-req { background: #fde8e8; color: var(--rust); }
-.tag-opt { background: #fef3e2; color: var(--amber); }
-.tag-num { background: #e8f4fd; color: #1a5a8b; }
-.tag-cat { background: #e8fde8; color: #1a7a1a; }
-.cell-na    { color: var(--amber); font-weight: 700; }
-.cell-empty { color: var(--rust); font-weight: 700; font-size: 0.78rem; }
-
-/* ── ABA 2: UPLOAD ──────────────────────────────────────────────── */
-.upload-page { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - var(--nav-h)); }
-.upload-sidebar { background: #fff; border-right: 1.5px solid rgba(139,26,26,0.10); padding: 32px 24px; display: flex; flex-direction: column; gap: 28px; box-shadow: 4px 0 16px rgba(139,26,26,0.05); }
-.sidebar-section { display: flex; flex-direction: column; gap: 8px; }
-.sidebar-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--rust); }
-.sidebar-hint { font-size: 0.87rem; color: var(--mid); line-height: 1.5; }
-.sidebar-note { font-size: 0.78rem; color: var(--mid); background: #fef8f0; border: 1px solid rgba(200,84,10,0.18); border-radius: 8px; padding: 9px 12px; line-height: 1.55; }
-.dropzone { border: 2px dashed rgba(139,26,26,0.30); border-radius: var(--radius); padding: 28px 16px; text-align: center; cursor: pointer; transition: var(--transition); background: #fdf9f5; }
-.dropzone:hover, .dropzone.dz-hover { border-color: var(--amber); background: #fef3e6; }
-.dz-icon { font-size: 2.2rem; margin-bottom: 8px; }
-.dz-main { font-size: 0.92rem; font-weight: 600; color: var(--dark); }
-.dz-sub  { font-size: 0.78rem; color: var(--mid); margin-top: 4px; }
-.file-info { font-size: 0.85rem; padding: 10px 14px; border-radius: 8px; line-height: 1.5; }
-.file-info.hidden { display: none; }
-.file-info.ok    { background: #e8fde8; color: #1a7a1a; border: 1px solid #9de89d; }
-.file-info.error { background: #fde8e8; color: var(--rust); border: 1px solid #f0a0a0; }
-.sheet-btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-.sheet-pill { background: #fdf3e8; border: 1.5px solid rgba(200,84,10,0.25); color: var(--amber); font-family: 'Source Sans 3', sans-serif; font-size: 0.82rem; font-weight: 600; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: var(--transition); }
-.sheet-pill:hover  { background: var(--amber); color: #fff; }
-.sheet-pill.active { background: var(--rust); border-color: var(--rust); color: #fff; }
-.decimal-badge { display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; padding: 10px 14px; border-radius: 8px; line-height: 1.5; }
-.dec-ok   { background: #e8fde8; color: #1a7a1a; border: 1px solid #9de89d; }
-.dec-warn { background: #fef3e2; color: #7a4a00; border: 1px solid #f0c870; }
-.dec-err  { background: #fde8e8; color: var(--rust); border: 1px solid #f0a0a0; }
-.dec-info { background: #e8f0fd; color: #1a3a8b; border: 1px solid #9db0ed; }
-.btn-validate, .btn-reset { border: none; border-radius: 10px; font-family: 'Source Sans 3', sans-serif; font-size: 0.95rem; font-weight: 700; padding: 14px; cursor: pointer; transition: var(--transition); width: 100%; text-align: center; }
-.btn-validate { background: linear-gradient(135deg, var(--rust), var(--amber)); color: #fff; box-shadow: 0 4px 14px rgba(139,26,26,0.30); }
-.btn-validate:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(139,26,26,0.35); }
-.btn-reset { background: transparent; border: 1.5px solid rgba(139,26,26,0.30); color: var(--rust); }
-.btn-reset:hover { background: #fde8e8; }
-.hidden { display: none !important; }
-.upload-results { padding: 32px; overflow-y: auto; }
-.results-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 14px; color: var(--mid); font-size: 0.95rem; text-align: center; }
-.summary-banner { display: flex; align-items: center; gap: 16px; padding: 18px 22px; border-radius: var(--radius); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; }
-.banner-ok   { background: #e8fde8; color: #1a7a1a; border: 1.5px solid #9de89d; }
-.banner-err  { background: #fde8e8; color: var(--rust); border: 1.5px solid #f0a0a0; }
-.banner-icon { font-size: 2rem; flex-shrink: 0; }
-.result-block { background: #fff; border-radius: var(--radius); border: 1.5px solid rgba(139,26,26,0.10); box-shadow: 0 3px 12px var(--shadow); padding: 22px; margin-bottom: 20px; }
-.result-block-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--rust); margin-bottom: 6px; }
-.result-block-sub   { font-size: 0.82rem; color: var(--mid); margin-bottom: 14px; }
-.badge-sheet { background: var(--amber); color: #fff; font-size: 0.72rem; font-family: 'Source Sans 3', sans-serif; font-weight: 600; padding: 2px 10px; border-radius: 12px; margin-left: 8px; vertical-align: middle; }
-.preview-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid rgba(139,26,26,0.12); max-height: 260px; overflow-y: auto; }
-.preview-table-wrap table    { font-size: 0.82rem; }
-.preview-table-wrap thead th { position: sticky; top: 0; font-size: 0.78rem; padding: 10px 12px; }
-.preview-table-wrap tbody td { padding: 8px 12px; }
-.checklist { display: flex; flex-direction: column; gap: 10px; }
-.check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 8px; font-size: 0.88rem; }
-.check-ok   { background: #f0fdf0; border: 1px solid #9de89d; }
-.check-fail { background: #fdf0f0; border: 1px solid #f0a0a0; }
-.check-icon   { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-.check-label  { display: block; font-weight: 600; color: var(--dark); }
-.check-detail { display: block; font-size: 0.80rem; color: var(--mid); margin-top: 3px; }
-.error-list { display: flex; flex-direction: column; gap: 8px; }
-.error-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 14px; background: #fff8f8; border: 1px solid #f0c0c0; border-radius: 8px; font-size: 0.85rem; }
-.error-rule { flex-shrink: 0; background: var(--rust); color: #fff; font-size: 0.70rem; font-weight: 700; padding: 2px 9px; border-radius: 10px; white-space: nowrap; margin-top: 1px; }
-.error-msg { color: var(--mid); line-height: 1.5; }
-
-/* ── ABA 3: ESTATÍSTICA DESCRITIVA ─────────────────────────────── */
-.desc-page { max-width: 1200px; margin: 0 auto; padding: 36px 32px 64px; }
-.desc-banner { display: flex; align-items: center; gap: 14px; background: #fff; border: 1.5px solid rgba(139,26,26,0.12); border-radius: var(--radius); padding: 16px 22px; margin-bottom: 32px; font-size: 0.92rem; color: var(--mid); box-shadow: 0 3px 12px var(--shadow); }
-.desc-banner-icon { font-size: 1.6rem; flex-shrink: 0; }
-.desc-banner strong { color: var(--dark); }
-.desc-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; gap: 16px; color: var(--mid); text-align: center; padding: 32px; }
-.desc-empty .big-icon { font-size: 3.5rem; }
-.desc-empty h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--rust); }
-.desc-empty p  { font-size: 0.92rem; max-width: 400px; line-height: 1.6; }
-.desc-empty .btn-go { background: linear-gradient(135deg, var(--rust), var(--amber)); color: #fff; border: none; border-radius: 10px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.92rem; padding: 12px 24px; cursor: pointer; transition: var(--transition); box-shadow: 0 4px 14px rgba(139,26,26,0.25); }
-.desc-empty .btn-go:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(139,26,26,0.30); }
-.desc-section { background: #fff; border-radius: var(--radius); border: 1.5px solid rgba(139,26,26,0.10); box-shadow: 0 3px 14px var(--shadow); margin-bottom: 28px; overflow: hidden; }
-.desc-var-header { display: flex; align-items: baseline; gap: 14px; padding: 14px 22px; background: linear-gradient(90deg, var(--rust), var(--amber)); }
-.desc-var-name  { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; letter-spacing: 0.5px; }
-.desc-var-label { font-size: 0.75rem; color: rgba(255,255,255,0.70); letter-spacing: 0.5px; }
-.desc-per-label { font-size: 0.80rem; font-weight: 600; color: var(--amber); letter-spacing: 1px; text-transform: uppercase; padding: 10px 22px 4px; }
-.desc-table-wrap { overflow-x: auto; padding: 0 0 4px; }
-.desc-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.desc-table thead tr { background: #fef3e8; }
-.desc-table thead th { color: var(--rust); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.5px; padding: 11px 16px; text-align: right; border-bottom: 2px solid rgba(139,26,26,0.12); white-space: nowrap; }
-.desc-table thead th:first-child { text-align: left; }
-
-/* Tabela transposta — cabeçalho de tratamentos */
-.stat-col-hdr {
-  text-align: left !important;
-  color: var(--rust) !important;
-  background: #fef3e8;
-  min-width: 90px;
-}
-
-.global-col-hdr {
-  background: #f0e4d0 !important;
-  color: var(--rust) !important;
-}
-
-/* Rótulo da estatística (primeira coluna) */
-.stat-row-label {
-  font-weight: 700;
-  color: var(--rust) !important;
-  font-size: 0.82rem;
-  text-align: left !important;
-  background: #fef3e8;
-  white-space: nowrap;
-  padding: 10px 16px !important;
-  border-right: 2px solid rgba(139,26,26,0.12);
-}
-
-/* Coluna Geral */
-.global-col {
-  background: #f5ede0 !important;
-  font-weight: 600;
-  color: var(--dark) !important;
-}
-.desc-table tbody tr:nth-child(even) { background: #fdf9f5; }
-.desc-table tbody tr:nth-child(odd)  { background: #fff; }
-.desc-table tbody tr:hover { background: #fef3e8; transition: background 0.15s; }
-.desc-table tbody td { padding: 10px 16px; text-align: right; color: var(--mid); border-bottom: 1px solid rgba(139,26,26,0.06); font-variant-numeric: tabular-nums; }
-.desc-table tbody td:first-child { text-align: left; }
-.global-row { background: #f5ede0 !important; font-weight: 600; }
-.global-row td { color: var(--dark) !important; }
-.tr-cell { font-weight: 700; color: var(--rust) !important; font-size: 0.88rem; }
-.na-cell { color: var(--amber) !important; font-weight: 700; }
-.cv-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-.cv-low      { background: #d4f5d4; color: #1a6b1a; }
-.cv-medium   { background: #fef3c7; color: #7a5500; }
-.cv-high     { background: #ffe0c0; color: #7a3000; }
-.cv-veryhigh { background: #fde8e8; color: var(--rust); }
-.cv-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; align-items: center; }
-.cv-legend-title { font-size: 0.78rem; font-weight: 600; color: var(--mid); letter-spacing: 0.5px; margin-right: 4px; }
-
-/* ── PLACEHOLDERS ───────────────────────────────────────────────── */
-.coming-soon { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; gap: 16px; color: var(--mid); }
-.coming-soon .big-icon { font-size: 4rem; }
-.coming-soon h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--rust); }
-.coming-soon p  { font-size: 0.95rem; color: var(--mid); }
-
-/* ── FOOTER ─────────────────────────────────────────────────────── */
-footer { background: var(--dark); color: rgba(255,255,255,0.5); text-align: center; padding: 28px 24px; font-size: 0.82rem; letter-spacing: 0.5px; }
-footer strong { color: var(--gold); }
-
-/* ══════════════════════════════════════════════════════════════════
-   ABA 4 — GRÁFICOS
-══════════════════════════════════════════════════════════════════ */
-.charts-empty {
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;min-height:55vh;gap:16px;
-  color:var(--mid);text-align:center;padding:32px;
-}
-.charts-empty .big-icon{font-size:3.5rem;}
-.charts-empty h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--rust);}
-.charts-empty p{font-size:0.92rem;max-width:400px;line-height:1.6;}
-
-.charts-toolbar {
-  display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;
-  padding:12px 24px;background:#fff;
-  border-bottom:1.5px solid rgba(139,26,26,0.10);
-  box-shadow:0 2px 10px rgba(139,26,26,0.06);
-  position:sticky;top:var(--nav-h);z-index:50;
-}
-.ctrl-group{display:flex;align-items:center;gap:7px;}
-.ctrl-label{font-size:0.70rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mid);white-space:nowrap;}
-.ctrl-sep{width:1px;height:30px;background:rgba(139,26,26,0.12);margin:0 2px;}
-.btn-toggle-group{display:flex;gap:3px;background:#fdf3e8;border:1.5px solid rgba(200,84,10,0.20);border-radius:8px;padding:3px;}
-.toggle-btn{background:transparent;border:none;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:0.80rem;font-weight:600;color:var(--mid);padding:5px 11px;cursor:pointer;transition:var(--transition);white-space:nowrap;}
-.toggle-btn:hover{background:rgba(200,84,10,0.10);color:var(--amber);}
-.toggle-btn.active{background:var(--rust);color:#fff;box-shadow:0 2px 6px rgba(139,26,26,0.25);}
-.export-btn{color:var(--amber);}
-.export-btn:hover{background:var(--amber) !important;color:#fff !important;}
-.axis-inputs{display:flex;align-items:center;gap:4px;}
-.axis-input{width:68px;padding:5px 7px;border:1.5px solid rgba(139,26,26,0.20);border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:0.80rem;color:var(--dark);background:#fdf9f5;transition:var(--transition);}
-.axis-input:focus{outline:none;border-color:var(--amber);background:#fff;}
-.axis-sep{font-size:0.82rem;color:var(--mid);}
-
-.charts-nav{display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 24px;background:#fdf9f5;border-bottom:1px solid rgba(139,26,26,0.08);}
-.nav-btn{background:var(--rust);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:0.88rem;font-weight:600;padding:8px 20px;cursor:pointer;transition:var(--transition);box-shadow:0 2px 8px rgba(139,26,26,0.20);}
-.nav-btn:hover{background:var(--amber);transform:translateY(-1px);}
-.nav-info{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--rust);min-width:180px;text-align:center;}
-
-.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:24px;}
-.charts-grid.single-mode{grid-template-columns:1fr;max-width:900px;margin:0 auto;}
-
-.chart-card{background:#fff;border-radius:var(--radius);border:1.5px solid rgba(139,26,26,0.10);box-shadow:0 3px 14px var(--shadow);overflow:hidden;transition:var(--transition);}
-.chart-card:hover{box-shadow:0 8px 28px rgba(139,26,26,0.15);transform:translateY(-2px);}
-.chart-card-title{font-family:'Playfair Display',serif;font-size:0.92rem;color:#fff;background:linear-gradient(90deg,var(--rust),var(--amber));padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
-.chart-dl-btn{background:rgba(255,255,255,0.20);border:none;border-radius:5px;color:#fff;font-size:0.70rem;font-weight:600;padding:3px 9px;cursor:pointer;transition:var(--transition);}
-.chart-dl-btn:hover{background:rgba(255,255,255,0.38);}
-.chart-card-body{padding:4px;}
-
-/* Input de eixo dentro do card */
-.card-axis-input {
-  width: 58px;
-  padding: 3px 6px;
-  border: 1px solid rgba(255,255,255,0.35);
-  border-radius: 5px;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  font-family: 'Source Sans 3', sans-serif;
-  font-size: 0.72rem;
-  text-align: center;
-  transition: var(--transition);
-}
-.card-axis-input::placeholder { color: rgba(255,255,255,0.55); }
-.card-axis-input:focus {
-  outline: none;
-  background: rgba(255,255,255,0.28);
-  border-color: rgba(255,255,255,0.70);
-}
-
-/* ── RESPONSIVO ─────────────────────────────────────────────────── */
-@media (max-width: 800px) {
-  .upload-page { grid-template-columns: 1fr; }
-  .upload-sidebar { border-right: none; border-bottom: 1.5px solid rgba(139,26,26,0.10); }
-  .upload-results { padding: 20px 16px; }
-}
-@media (max-width: 700px) {
-  nav { padding: 0 12px; gap: 2px; }
-  .nav-logo-text .brand { font-size: 1rem; }
-  .tab-btn { padding: 7px 10px; font-size: 0.78rem; }
-  .home-hero { padding: 48px 20px 56px; }
-  .home-body { padding: 40px 16px; }
-}
-  </style>
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       NAVEGAÇÃO
-  ═══════════════════════════════════════════════════════════════ -->
   <nav>
     <div class="nav-logo">
       <img src="logo.png" alt="GEAVES Logo" />
@@ -381,6 +26,9 @@ footer strong { color: var(--gold); }
     <button class="tab-btn active" onclick="switchTab('home', this)">
       <span class="icon">🏠</span> Início
     </button>
+    <button class="tab-btn" onclick="switchTab('instructions', this)">
+      <span class="icon">📖</span> Instruções
+    </button>
     <button class="tab-btn" onclick="switchTab('upload', this)">
       <span class="icon">📂</span> Dados
     </button>
@@ -392,29 +40,29 @@ footer strong { color: var(--gold); }
     </button>
   </nav>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       CONTEÚDO PRINCIPAL
-  ═══════════════════════════════════════════════════════════════ -->
   <main>
 
-    <!-- ── ABA 1: HOME ──────────────────────────────────────────── -->
-    <div id="tab-home" class="tab-panel active">
-
+<div id="tab-home" class="tab-panel active">
       <section class="home-hero">
         <img src="logo.png" alt="GEAVES" class="hero-logo" />
         <p class="hero-subtitle">GEAVES · UFRPE</p>
         <h1 class="hero-title"><span>DataAves</span></h1>
-        <p class="hero-desc">
+        
+        <p class="hero-desc" style="margin-bottom: 16px;">
           Plataforma de verificação preliminar e análise exploratória de dados
           experimentais em avicultura. Desenvolvido pelo Dr. Marcos Santos.
         </p>
-        <button class="hero-btn" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[1])">
-          ⚡ Começar agora
+        
+        <p class="hero-desc" style="font-weight: 600; color: var(--gold);">
+          Antes de iniciar, leia as instruções.
+        </p>
+
+        <button class="hero-btn" onclick="switchTab('instructions', document.querySelectorAll('.tab-btn')[1])">
+          📖 Ler Instruções
         </button>
       </section>
 
       <div class="home-body">
-
         <p class="section-label">Sobre a plataforma</p>
         <h2 class="section-title">O que é o DataAves?</h2>
         <p class="section-lead">
@@ -439,202 +87,394 @@ footer strong { color: var(--gold); }
             <h3 class="card-title">Gráficos automáticos</h3>
             <p class="card-text">Detecta o número de variáveis e organiza o layout dos gráficos (linhas, barras e boxplot) automaticamente.</p>
           </div>
-          
           <div class="card">
             <span class="card-icon">🔒</span>
             <h3 class="card-title">Uso</h3>
-            <p class="card-text">Desenvolvida originalmente para o GEAVES, 
-              esta plataforma é aberta a todos os alunos que desejam explorar e analisar seus dados.</p>
-          </div>
-          </div>
-        
-        <div class="instructions-box">
-          <div class="instr-header">
-            <span>📋</span>
-            <h3>Como usar o DataAves</h3>
-          </div>
-          <div class="steps">
-            <div class="step">
-              <div class="step-num">1</div>
-              <div class="step-content">
-                <h4>Prepare sua planilha Excel seguindo os padrões GEAVES</h4>
-                <p>Organize os dados no formato padrão descrito abaixo. A primeira linha deve conter os cabeçalhos (siglas das variáveis). Cada linha subsequente representa uma repetição. Variáveis de categorias diferentes devem estar em abas separadas do mesmo arquivo.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <div class="step-content">
-                <h4>Acesse a aba "Dados" e faça o upload</h4>
-                <p>Clique em "Dados" no menu superior. Arraste o arquivo .xlsx ou clique para selecioná-lo. Escolha qual aba (sheet) deseja verificar — o sistema lista automaticamente todas as abas do arquivo.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <div class="step-content">
-                <h4>Confira a estatística descritiva</h4>
-                <p>Após a validação bem-sucedida, acesse a aba "Estatística" para visualizar a distribuição e resumo de cada variável por tratamento e fase experimental.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num">4</div>
-              <div class="step-content">
-                <h4>Explore os gráficos</h4>
-                <p>Acesse a aba "Gráficos" para visualizar seus dados em gráficos de linhas, barras e boxplot. O layout é gerado automaticamente com base no número de variáveis detectadas.</p>
-              </div>
-            </div>
+            <p class="card-text">Desenvolvida originalmente para o GEAVES, esta plataforma é aberta a todos os alunos que desejam explorar e analisar seus dados.</p>
           </div>
         </div>
-
-        <div class="format-section">
-          <p class="section-label">Padrões obrigatórios </p>
-          <h2 class="section-title">Regras de organização de dados — GEAVES</h2>
-          <p class="section-lead">
-            Estas regras foram estabelecidas para garantir padronização das tabelas. 
-            O DataAves verifica automaticamente cada uma delas ao carregar sua planilha.
-          </p>
-
-          <div class="rules-grid">
-            <div class="rule-card">
-              <div class="rule-icon">📊</div>
-              <div class="rule-body">
-                <h4>Use apenas médias das repetições por fase</h4>
-                <p>Coloque a média de cada repetição para cada fase experimental, <strong>não os dados brutos individuais</strong>. Os dados brutos devem estar em arquivo separado e ser enviados ao professor responsável.</p>
-                <div class="rule-example">
-                  <span class="ex-label">✔ Correto</span> TR=1 · REP=1 · Fase1: BWG=44 · FC=1.477
+      </div></div><div id="tab-instructions" class="tab-panel">
+        <div class="home-body">
+  
+            <div class="instructions-box">
+              <div class="instr-header">
+                <span>📋</span>
+                <h3>Como usar o DataAves</h3>
+              </div>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <h4>Prepare sua planilha Excel seguindo os padrões GEAVES</h4>
+                    <p>Organize os dados no formato padrão descrito abaixo. A primeira linha deve conter os cabeçalhos (siglas das variáveis). Cada linha subsequente representa uma repetição. Variáveis de categorias diferentes devem estar em abas separadas do mesmo arquivo.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h4>Acesse a aba "Dados" e faça o upload</h4>
+                    <p>Clique em "Dados" no menu superior. Arraste o arquivo .xlsx ou clique para selecioná-lo. Escolha qual aba (sheet) deseja verificar — o sistema lista automaticamente todas as abas do arquivo.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <h4>Confira a estatística descritiva</h4>
+                    <p>Após a validação bem-sucedida, acesse a aba "Estatística" para visualizar a distribuição e resumo de cada variável por tratamento e fase experimental.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-num">4</div>
+                  <div class="step-content">
+                    <h4>Explore os gráficos</h4>
+                    <p>Acesse a aba "Gráficos" para visualizar seus dados em gráficos de linhas, barras e boxplot. O layout é gerado automaticamente com base no número de variáveis detectadas.</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="rule-card">
-              <div class="rule-icon">🏷️</div>
-              <div class="rule-body">
-                <h4>Siglas em inglês, sem símbolos</h4>
-                <p>Todos os cabeçalhos devem ser siglas em inglês. <strong>Nunca use símbolos</strong> como %, $, *, ° nos títulos das colunas.</p>
-                <div class="rule-example">
-                  <span class="ex-label ex-bad">✘</span> Albumen% &nbsp;|&nbsp;
-                  <span class="ex-label">✔</span> alb_p
+          
+            <div class="format-section">
+              <p class="section-label">Padrões obrigatórios </p>
+              <h2 class="section-title">Regras de organização de dados — GEAVES</h2>
+              <p class="section-lead">
+                Estas regras foram estabelecidas para garantir padronização das tabelas. 
+                O DataAves verifica automaticamente cada uma delas ao carregar sua planilha.
+              </p>
+          
+              <div class="rules-grid">
+                <div class="rule-card">
+                  <div class="rule-icon">📊</div>
+                  <div class="rule-body">
+                    <h4>Use apenas médias das repetições por fase</h4>
+                    <p>Coloque a média de cada repetição para cada fase experimental, <strong>não os dados brutos individuais</strong>. Os dados brutos devem estar em arquivo separado e ser enviados ao professor responsável.</p>
+                    <div class="rule-example">
+                      <span class="ex-label">✔ Correto</span> TR=1 · REP=1 · Fase1: BWG=44 · FC=1.477
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-card">
+                  <div class="rule-icon">🏷️</div>
+                  <div class="rule-body">
+                    <h4>Siglas em inglês, sem símbolos</h4>
+                    <p>Todos os cabeçalhos devem ser siglas em inglês. <strong>Nunca use símbolos</strong> como %, $, *, ° nos títulos das colunas.</p>
+                    <div class="rule-example">
+                      <span class="ex-label ex-bad">✘</span> Albumen% &nbsp;|&nbsp;
+                      <span class="ex-label">✔</span> alb_p
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-card">
+                  <div class="rule-icon">🔡</div>
+                  <div class="rule-body">
+                    <h4>Sem espaços, acentos ou palavras completas</h4>
+                    <p>Use sempre siglas curtas sem acento e sem espaço. Underline <code>_</code> é permitido para separar partes da sigla.</p>
+                    <div class="rule-example">
+                      <span class="ex-label ex-bad">✘</span> Percentagem de álbum &nbsp;|&nbsp;
+                      <span class="ex-label">✔</span> alb_p
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-card">
+                  <div class="rule-icon">🚫</div>
+                  <div class="rule-body">
+                    <h4>Sem siglas repetidas</h4>
+                    <p>Cada variável deve ter uma sigla única no arquivo. Siglas duplicadas causam ambiguidade na análise.</p>
+                    <div class="rule-example">
+                      <span class="ex-label ex-bad">✘</span> BWG, BWG &nbsp;|&nbsp;
+                      <span class="ex-label">✔</span> bwg1, bwg2
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-card">
+                  <div class="rule-icon">🔲</div>
+                  <div class="rule-body">
+                    <h4>Use NA para parcelas perdidas</h4>
+                    <p>Quando uma observação não puder ser registrada, <strong>escreva NA</strong>. Nunca deixe a célula em branco.</p>
+                    <div class="rule-example">
+                      <span class="ex-label ex-bad">✘</span> célula vazia &nbsp;|&nbsp;
+                      <span class="ex-label">✔</span> NA
+                    </div>
+                  </div>
+                </div>
+                <div class="rule-card">
+                  <div class="rule-icon">📑</div>
+                  <div class="rule-body">
+                    <h4>Variáveis por categoria em abas separadas</h4>
+                    <p>Separe variáveis por categoria em abas (sheets) diferentes no mesmo .xlsx. Nome da aba: curto, minúsculas, sem acento.</p>
+                    <div class="rule-example">
+                      <span class="ex-label ex-bad">✘</span> "Desempenho Produtivo" &nbsp;|&nbsp;
+                      <span class="ex-label">✔</span> desempenho · qualidade · bioquimico
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="rule-card">
-              <div class="rule-icon">🔡</div>
-              <div class="rule-body">
-                <h4>Sem espaços, acentos ou palavras completas</h4>
-                <p>Use sempre siglas curtas sem acento e sem espaço. Underline <code>_</code> é permitido para separar partes da sigla.</p>
-                <div class="rule-example">
-                  <span class="ex-label ex-bad">✘</span> Percentagem de álbum &nbsp;|&nbsp;
-                  <span class="ex-label">✔</span> alb_p
-                </div>
+          
+            <div class="format-section">
+              <p class="section-label">Estrutura da planilha</p>
+              <h2 class="section-title">Colunas obrigatórias e variáveis de resposta</h2>
+              <p class="section-lead">
+                As três primeiras colunas são identificadoras obrigatórias; as demais são
+                as variáveis de resposta mensuradas em cada unidade experimental.
+              </p>
+          
+              <div class="format-table-wrap" style="margin-bottom:28px;">
+                <table>
+                  <thead>
+                    <tr><th>Coluna</th><th>Obrigatoriedade</th><th>Tipo</th><th>Descrição / Exemplo</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>TR</strong></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-cat">Categórico</span></td>
+                      <td>Tratamento — número ou código do grupo experimental (1, 2, 3…)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>REP</strong></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Repetição — número da baia, gaiola ou boxe (1, 2, 3…)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>PER</strong></td>
+                      <td><span class="tag tag-opt">Opcional</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Período/fase experimental. Obrigatória quando há mais de uma fase.</td>
+                    </tr>
+                    <tr>
+                      <td><em>VAR_1 … VAR_N</em></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Variáveis de resposta em siglas inglesas. Ex.: BWG, FI, FC, EW, EO, alb_p…</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div class="rule-card">
-              <div class="rule-icon">🚫</div>
-              <div class="rule-body">
-                <h4>Sem siglas repetidas</h4>
-                <p>Cada variável deve ter uma sigla única no arquivo. Siglas duplicadas causam ambiguidade na análise.</p>
-                <div class="rule-example">
-                  <span class="ex-label ex-bad">✘</span> BWG, BWG &nbsp;|&nbsp;
-                  <span class="ex-label">✔</span> bwg1, bwg2
-                </div>
+          <div class="format-section">
+              <p class="section-label">Estrutura da planilha</p>
+              <h2 class="section-title">Colunas obrigatórias e variáveis de resposta</h2>
+              <p class="section-lead">
+                As três primeiras colunas são identificadoras obrigatórias; as demais são
+                as variáveis de resposta mensuradas em cada unidade experimental.
+              </p>
+          
+              <div class="format-table-wrap" style="margin-bottom:28px;">
+                <table>
+                  <thead>
+                    <tr><th>Coluna</th><th>Obrigatoriedade</th><th>Tipo</th><th>Descrição / Exemplo</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>TR</strong></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-cat">Categórico</span></td>
+                      <td>Tratamento — número ou código do grupo experimental (1, 2, 3…)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>REP</strong></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Repetição — número da baia, gaiola ou boxe (1, 2, 3…)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>PER</strong></td>
+                      <td><span class="tag tag-opt">Opcional</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Período/fase experimental. Obrigatória quando há mais de uma fase.</td>
+                    </tr>
+                    <tr>
+                      <td><em>VAR_1 … VAR_N</em></td>
+                      <td><span class="tag tag-req">Obrigatória</span></td>
+                      <td><span class="tag tag-num">Numérico</span></td>
+                      <td>Variáveis de resposta em siglas inglesas. Ex.: BWG, FI, FC, EW, EO, alb_p…</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </div>
-            <div class="rule-card">
-              <div class="rule-icon">🔲</div>
-              <div class="rule-body">
-                <h4>Use NA para parcelas perdidas</h4>
-                <p>Quando uma observação não puder ser registrada, <strong>escreva NA</strong>. Nunca deixe a célula em branco.</p>
-                <div class="rule-example">
-                  <span class="ex-label ex-bad">✘</span> célula vazia &nbsp;|&nbsp;
-                  <span class="ex-label">✔</span> NA
-                </div>
+              
+              <p class="section-label">Exemplo real de planilha aceita</p>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>TR</th><th>REP</th><th>PER</th><th>BWG</th><th>FI</th><th>FC</th><th>EW</th><th>EO</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>1</td><td>1</td><td>1</td><td>44</td><td>65</td><td>1.477</td><td>65</td><td>95</td></tr>
+                    <tr><td>1</td><td>2</td><td>1</td><td>41</td><td>63</td><td>1.537</td><td>63</td><td>95</td></tr>
+                    <tr><td>2</td><td>1</td><td>1</td><td>45</td><td>64</td><td>1.422</td><td>62</td><td class="cell-na">NA</td></tr>
+                    <tr><td>2</td><td>2</td><td>1</td><td>45</td><td>62</td><td>1.378</td><td>61</td><td>95</td></tr>
+                    <tr><td>3</td><td>1</td><td>1</td><td>45</td><td>63</td><td>1.400</td><td>65</td><td>95</td></tr>
+                    <tr><td>3</td><td>6</td><td>1</td><td>43</td><td>68</td><td>1.581</td><td>63</td><td>93</td></tr>
+                  </tbody>
+                </table>
               </div>
+              <p style="font-size:0.8rem;color:var(--mid);margin-top:10px;">
+                ⚠️ Parcela perdida (TR=2, REP=1, EO) preenchida com <strong>NA</strong>.
+                Cada aba do arquivo representa uma categoria de variáveis.
+              </p>
+
             </div>
-            <div class="rule-card">
-              <div class="rule-icon">📑</div>
-              <div class="rule-body">
-                <h4>Variáveis por categoria em abas separadas</h4>
-                <p>Separe variáveis por categoria em abas (sheets) diferentes no mesmo .xlsx. Nome da aba: curto, minúsculas, sem acento.</p>
-                <div class="rule-example">
-                  <span class="ex-label ex-bad">✘</span> "Desempenho Produtivo" &nbsp;|&nbsp;
-                  <span class="ex-label">✔</span> desempenho · qualidade · bioquimico
-                </div>
+            <div class="format-section" style="margin-top: 48px;">
+              <p class="section-label">Padronização GEAVES</p>
+              <h2 class="section-title">Dicionário de Siglas Oficiais</h2>
+              <p class="section-lead">
+                Utilize <strong>exatamente</strong> as siglas abaixo nos cabeçalhos das suas colunas no Excel. Elas seguem o padrão internacional de publicações científicas em avicultura.
+              </p>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Performance (Desempenho)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Body weight</td><td>Peso corporal</td><td><span class="tag tag-num">BW</span></td></tr>
+                    <tr><td>Body weight gain</td><td>Ganho de peso corporal</td><td><span class="tag tag-num">BWG</span></td></tr>
+                    <tr><td>Average daily gain</td><td>Ganho médio diário</td><td><span class="tag tag-num">ADG</span></td></tr>
+                    <tr><td>Dry matter intake</td><td>Consumo de matéria seca</td><td><span class="tag tag-num">DMI</span></td></tr>
+                    <tr><td>Feed conversion ratio</td><td>Conversão alimentar</td><td><span class="tag tag-num">FCR</span></td></tr>
+                    <tr><td>Egg production / output</td><td>Produção de ovos</td><td><span class="tag tag-num">EO</span></td></tr>
+                    <tr><td>Egg mass</td><td>Massa dos ovos</td><td><span class="tag tag-num">EM</span></td></tr>
+                    <tr><td>Egg weight</td><td>Peso do ovo</td><td><span class="tag tag-num">EW</span></td></tr>
+                  </tbody>
+                </table>
               </div>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Egg Quality (Qualidade dos Ovos)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Albumen weight</td><td>Peso do albúmen</td><td><span class="tag tag-num">AW</span></td></tr>
+                    <tr><td>Albumen height</td><td>Altura da clara</td><td><span class="tag tag-num">AH</span></td></tr>
+                    <tr><td>Shell weight</td><td>Peso da casca</td><td><span class="tag tag-num">SW</span></td></tr>
+                    <tr><td>Egg shell</td><td>Casca do ovo</td><td><span class="tag tag-num">ES</span></td></tr>
+                    <tr><td>Shell thickness</td><td>Espessura da casca</td><td><span class="tag tag-num">ST</span></td></tr>
+                    <tr><td>Yolk weight</td><td>Peso da gema</td><td><span class="tag tag-num">YW</span></td></tr>
+                    <tr><td>Yolk color</td><td>Cor da gema</td><td><span class="tag tag-num">YC</span></td></tr>
+                    <tr><td>Haugh Unit</td><td>Unidade Haugh</td><td><span class="tag tag-num">HU</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Blood Variables (Variáveis Sanguíneas)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Red Blood Cells</td><td>Glóbulos vermelhos</td><td><span class="tag tag-num">RBC</span></td></tr>
+                    <tr><td>Complete Blood Count</td><td>Contagem de células vermelhas</td><td><span class="tag tag-num">CBC</span></td></tr>
+                    <tr><td>Hematocrit</td><td>Hematócrito</td><td><span class="tag tag-num">HTC</span></td></tr>
+                    <tr><td>Mean Corpuscular Volume</td><td>Volume corpuscular médio</td><td><span class="tag tag-num">MCV</span></td></tr>
+                    <tr><td>Mean Corpuscular Hemoglobin</td><td>Hemoglobina corpuscular média</td><td><span class="tag tag-num">MCH</span></td></tr>
+                    <tr><td>Total Proteins</td><td>Proteínas totais</td><td><span class="tag tag-num">TP</span></td></tr>
+                    <tr><td>Total Leukocytes</td><td>Leucócitos totais</td><td><span class="tag tag-num">WBC</span></td></tr>
+                    <tr><td>Heterophils</td><td>Heterófilos</td><td><span class="tag tag-num">HET</span></td></tr>
+                    <tr><td>Lymphocytes</td><td>Linfócitos</td><td><span class="tag tag-num">LYM</span></td></tr>
+                    <tr><td>Monocytes</td><td>Monócitos</td><td><span class="tag tag-num">MON</span></td></tr>
+                    <tr><td>Eosinophils</td><td>Eosinófilos</td><td><span class="tag tag-num">EOS</span></td></tr>
+                    <tr><td>Basophils</td><td>Basófilos</td><td><span class="tag tag-num">BAS</span></td></tr>
+                    <tr><td>Total Platelets</td><td>Plaquetas totais</td><td><span class="tag tag-num">PLT</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Metabolism (Metabolismo e Nutrição)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Crude protein</td><td>Proteína bruta</td><td><span class="tag tag-num">CP</span></td></tr>
+                    <tr><td>Metabolizable energy</td><td>Energia metabolizável</td><td><span class="tag tag-num">ME</span></td></tr>
+                    <tr><td>Amino acids</td><td>Aminoácidos</td><td><span class="tag tag-num">AA</span></td></tr>
+                    <tr><td>Ether extract</td><td>Extrato etéreo</td><td><span class="tag tag-num">EE</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Bone Quality (Qualidade Óssea)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Proximal Density</td><td>Densidade proximal</td><td><span class="tag tag-num">PD</span></td></tr>
+                    <tr><td>Medial Density</td><td>Densidade medial</td><td><span class="tag tag-num">MD</span></td></tr>
+                    <tr><td>Distal Density</td><td>Densidade distal</td><td><span class="tag tag-num">DD</span></td></tr>
+                    <tr><td>Tibia Length</td><td>Comprimento da tíbia</td><td><span class="tag tag-num">TL</span></td></tr>
+                    <tr><td>Tibia Weight</td><td>Peso da tíbia</td><td><span class="tag tag-num">TW</span></td></tr>
+                    <tr><td>Mineral Matter</td><td>Matéria mineral</td><td><span class="tag tag-num">MM</span></td></tr>
+                    <tr><td>Seedor Index</td><td>Índice de Seedor</td><td><span class="tag tag-num">SI</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          
+              <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Immunology & Health (Imunologia)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Lipopolysaccharide</td><td>Lipopolissacarídeo</td><td><span class="tag tag-num">LPS</span></td></tr>
+                    <tr><td>Immunoglobulin</td><td>Imunoglobulina</td><td><span class="tag tag-num">Ig</span></td></tr>
+                    <tr><td>Interferon-gamma</td><td>Interferon-gama</td><td><span class="tag tag-num">IFN-γ</span></td></tr>
+                    <tr><td>Interleukin</td><td>Interleucina</td><td><span class="tag tag-num">IL</span></td></tr>
+                    <tr><td>Nitric oxide</td><td>Óxido nítrico</td><td><span class="tag tag-num">NO</span></td></tr>
+                    <tr><td>Reactive oxygen species</td><td>Espécies reativas de oxigênio</td><td><span class="tag tag-num">ROS</span></td></tr>
+                    <tr><td>Toll-like receptor</td><td>Receptor do tipo Toll</td><td><span class="tag tag-num">TLR</span></td></tr>
+                    <tr><td>Tumor necrosis factor-alpha</td><td>Fator de necrose tumoral alfa</td><td><span class="tag tag-num">TNF-α</span></td></tr>
+                    <tr><td>Salmonella species</td><td>Espécies de Salmonella</td><td><span class="tag tag-num">Salmonella spp.</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          <h3 style="color: var(--rust); margin: 32px 0 12px; font-family: 'Playfair Display', serif;">Immunology & Health (Imunologia)</h3>
+              <div class="format-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Termo em Inglês</th><th>Termo em Português</th><th>Sigla Recomendada</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Lipopolysaccharide</td><td>Lipopolissacarídeo</td><td><span class="tag tag-num">LPS</span></td></tr>
+                    <tr><td>Immunoglobulin</td><td>Imunoglobulina</td><td><span class="tag tag-num">Ig</span></td></tr>
+                    <tr><td>Interferon-gamma</td><td>Interferon-gama</td><td><span class="tag tag-num">IFN-γ</span></td></tr>
+                    <tr><td>Interleukin</td><td>Interleucina</td><td><span class="tag tag-num">IL</span></td></tr>
+                    <tr><td>Nitric oxide</td><td>Óxido nítrico</td><td><span class="tag tag-num">NO</span></td></tr>
+                    <tr><td>Reactive oxygen species</td><td>Espécies reativas de oxigênio</td><td><span class="tag tag-num">ROS</span></td></tr>
+                    <tr><td>Toll-like receptor</td><td>Receptor do tipo Toll</td><td><span class="tag tag-num">TLR</span></td></tr>
+                    <tr><td>Tumor necrosis factor-alpha</td><td>Fator de necrose tumoral alfa</td><td><span class="tag tag-num">TNF-α</span></td></tr>
+                    <tr><td>Salmonella species</td><td>Espécies de Salmonella</td><td><span class="tag tag-num">Salmonella spp.</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+          
+            </div><div style="text-align: center; margin-top: 64px; margin-bottom: 32px;">
+              <p style="font-size: 1.05rem; color: var(--mid); margin-bottom: 16px;">
+                Tudo pronto? Agora que você já conhece as regras, vamos analisar sua planilha.
+              </p>
+              <button class="hero-btn" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[2])">
+                📂 Ir para Dados e Iniciar
+              </button>
             </div>
-          </div>
-        </div>
+            </div>
+    </div>
+            </div></div>
+            
+    </div>
 
-        <div class="format-section">
-          <p class="section-label">Estrutura da planilha</p>
-          <h2 class="section-title">Colunas obrigatórias e variáveis de resposta</h2>
-          <p class="section-lead">
-            As três primeiras colunas são identificadoras obrigatórias; as demais são
-            as variáveis de resposta mensuradas em cada unidade experimental.
-          </p>
 
-          <div class="format-table-wrap" style="margin-bottom:28px;">
-            <table>
-              <thead>
-                <tr><th>Coluna</th><th>Obrigatoriedade</th><th>Tipo</th><th>Descrição / Exemplo</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>TR</strong></td>
-                  <td><span class="tag tag-req">Obrigatória</span></td>
-                  <td><span class="tag tag-cat">Categórico</span></td>
-                  <td>Tratamento — número ou código do grupo experimental (1, 2, 3…)</td>
-                </tr>
-                <tr>
-                  <td><strong>REP</strong></td>
-                  <td><span class="tag tag-req">Obrigatória</span></td>
-                  <td><span class="tag tag-num">Numérico</span></td>
-                  <td>Repetição — número da baia, gaiola ou boxe (1, 2, 3…)</td>
-                </tr>
-                <tr>
-                  <td><strong>PER</strong></td>
-                  <td><span class="tag tag-opt">Opcional</span></td>
-                  <td><span class="tag tag-num">Numérico</span></td>
-                  <td>Período/fase experimental. Obrigatória quando há mais de uma fase.</td>
-                </tr>
-                <tr>
-                  <td><em>VAR_1 … VAR_N</em></td>
-                  <td><span class="tag tag-req">Obrigatória</span></td>
-                  <td><span class="tag tag-num">Numérico</span></td>
-                  <td>Variáveis de resposta em siglas inglesas. Ex.: BWG, FI, FC, EW, EO, alb_p…</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <p class="section-label">Exemplo real de planilha aceita</p>
-          <div class="format-table-wrap">
-            <table>
-              <thead>
-                <tr><th>TR</th><th>REP</th><th>PER</th><th>BWG</th><th>FI</th><th>FC</th><th>EW</th><th>EO</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>1</td><td>1</td><td>1</td><td>44</td><td>65</td><td>1.477</td><td>65</td><td>95</td></tr>
-                <tr><td>1</td><td>2</td><td>1</td><td>41</td><td>63</td><td>1.537</td><td>63</td><td>95</td></tr>
-                <tr><td>2</td><td>1</td><td>1</td><td>45</td><td>64</td><td>1.422</td><td>62</td><td class="cell-na">NA</td></tr>
-                <tr><td>2</td><td>2</td><td>1</td><td>45</td><td>62</td><td>1.378</td><td>61</td><td>95</td></tr>
-                <tr><td>3</td><td>1</td><td>1</td><td>45</td><td>63</td><td>1.400</td><td>65</td><td>95</td></tr>
-                <tr><td>3</td><td>6</td><td>1</td><td>43</td><td>68</td><td>1.581</td><td>63</td><td>93</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p style="font-size:0.8rem;color:var(--mid);margin-top:10px;">
-            ⚠️ Parcela perdida (TR=2, REP=1, EO) preenchida com <strong>NA</strong>.
-            Cada aba do arquivo representa uma categoria de variáveis.
-          </p>
-        </div>
-
-      </div><!-- /home-body -->
-    </div><!-- /tab-home -->
-
-    <!-- ── ABA 2: UPLOAD & VERIFICAÇÃO ─────────────────────────── -->
     <div id="tab-upload" class="tab-panel">
       <div class="upload-page">
-
         <div class="upload-sidebar">
-
           <div class="sidebar-section">
             <p class="section-label">Passo 1</p>
             <h3 class="sidebar-title">Selecione o arquivo</h3>
@@ -666,31 +506,22 @@ footer strong { color: var(--gold); }
             <div id="decimalInfo" class="decimal-badge"></div>
             <p class="sidebar-note">
               O sistema converte vírgulas em pontos automaticamente antes da validação.
-              Nenhuma alteração é feita no arquivo original.
             </p>
           </div>
 
           <button id="btnValidate" class="btn-validate hidden" onclick="runValidationAndRender()">
             🔍 Verificar dados
           </button>
-
           <button id="btnReset" class="btn-reset hidden" onclick="resetUpload()">
             ↺ Carregar outro arquivo
           </button>
-
-        </div><!-- /upload-sidebar -->
-
-        <div class="upload-results">
-
+        </div><div class="upload-results">
           <div class="results-empty" id="resultsEmpty">
             <span style="font-size:3.5rem;">🧐</span>
             <p>O relatório de verificação aparecerá aqui após o upload.</p>
           </div>
-
           <div id="resultsContent" style="display:none;">
-
             <div id="summaryBanner" class="summary-banner"></div>
-
             <div class="result-block">
               <h4 class="result-block-title">
                 📋 Preview dos dados
@@ -699,31 +530,20 @@ footer strong { color: var(--gold); }
               <p class="result-block-sub" id="previewDimensions"></p>
               <div class="preview-table-wrap" id="previewTableWrap"></div>
             </div>
-
             <div class="result-block">
               <h4 class="result-block-title">✅ Verificação das regras GEAVES</h4>
               <div id="checklistItems" class="checklist"></div>
             </div>
-
             <div id="errorDetails" class="result-block" style="display:none;">
               <h4 class="result-block-title">⚠️ Detalhes dos problemas encontrados</h4>
               <div id="errorList" class="error-list"></div>
             </div>
-
           </div>
         </div>
-
       </div>
-    </div><!-- /tab-upload -->
-
-    <!-- ── ABA 3: ESTATÍSTICA DESCRITIVA ──────────────────────── -->
-    <div id="tab-descriptive" class="tab-panel">
+    </div><div id="tab-descriptive" class="tab-panel">
       <div class="desc-page">
-
-        <!-- Banner de contexto (preenchido por descriptive.js) -->
         <div id="descBanner" class="desc-banner" style="display:none;"></div>
-
-        <!-- Legenda do CV -->
         <div class="cv-legend" id="cvLegend" style="display:none;">
           <span class="cv-legend-title">CV (Gomes, 1990):</span>
           <span class="cv-badge cv-low">     &lt; 10% — Baixo</span>
@@ -731,54 +551,48 @@ footer strong { color: var(--gold); }
           <span class="cv-badge cv-high">    20–30% — Alto</span>
           <span class="cv-badge cv-veryhigh">&gt; 30% — Muito alto</span>
         </div>
-
-        <!-- Estado vazio — aparece quando não há dados carregados -->
         <div class="desc-empty" id="descEmpty">
           <span class="big-icon">📐</span>
           <h2>Nenhum dado carregado</h2>
           <p>Carregue e valide sua planilha na aba <strong>Dados</strong> para que a
              estatística descritiva seja calculada automaticamente aqui.</p>
-          <button class="btn-go" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[1])">
+          <button class="btn-go" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[2])">
             📂 Ir para Dados
           </button>
         </div>
-
-        <!-- Conteúdo (preenchido por descriptive.js) -->
         <div id="descContent" style="display:none;"></div>
-
       </div>
-    </div>
-
-    <!-- ── ABA 4: GRÁFICOS ─────────────────────────────────────── -->
-    <div id="tab-charts" class="tab-panel">
-
-      <!-- Estado vazio -->
+    </div><div id="tab-charts" class="tab-panel">
       <div class="charts-empty" id="chartsEmpty">
         <span class="big-icon">📈</span>
         <h2>Nenhum dado carregado</h2>
         <p>Carregue e valide sua planilha na aba <strong>Dados</strong> primeiro.</p>
-        <button class="btn-go" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[1])">
+        <button class="btn-go" onclick="switchTab('upload', document.querySelectorAll('.tab-btn')[2])">
           📂 Ir para Dados
         </button>
       </div>
 
-      <!-- Conteúdo principal -->
       <div id="chartsMain" style="display:none;">
-
-        <!-- ── BARRA DE CONTROLES ── -->
         <div class="charts-toolbar">
-
-          <!-- Tipo de gráfico -->
           <div class="ctrl-group">
             <span class="ctrl-label">Tipo</span>
             <div class="btn-toggle-group" id="chartTypeGroup">
               <button class="toggle-btn active" onclick="setChartType('bar',this)">▊ Barras</button>
               <button class="toggle-btn" onclick="setChartType('line',this)">↗ Linhas</button>
               <button class="toggle-btn" onclick="setChartType('box',this)">▭ Boxplot</button>
+              <button class="toggle-btn" onclick="setChartType('violin',this)">🎻 Violino</button>
             </div>
           </div>
-
-          <!-- Layout -->
+        <div class="ctrl-group">
+        <span class="ctrl-label">Exportar</span>
+        <div class="btn-toggle-group">
+          <button class="toggle-btn export-btn" onclick="exportCurrentPNG()">⬇ PNG</button>
+          <button class="toggle-btn export-btn" onclick="exportAllPNG()">⬇ Todos</button>
+          <button class="toggle-btn export-btn" id="btnGeneratePdf" onclick="generateFullPDF()" style="border-left: 1px solid rgba(139,26,26,0.2); padding-left: 10px; font-weight: 700;">
+            📄 PDF
+          </button>
+         </div>
+        </div>
           <div class="ctrl-group">
             <span class="ctrl-label">Layout</span>
             <div class="btn-toggle-group" id="layoutGroup">
@@ -786,8 +600,6 @@ footer strong { color: var(--gold); }
               <button class="toggle-btn" onclick="setLayout('single',this)">⬜ Individual</button>
             </div>
           </div>
-
-          <!-- Erro (só aparece em bar/line) -->
           <div class="ctrl-group" id="errorBarGroup">
             <span class="ctrl-label">Erro</span>
             <div class="btn-toggle-group" id="errorTypeGroup">
@@ -795,8 +607,6 @@ footer strong { color: var(--gold); }
               <button class="toggle-btn" onclick="setErrorType('se',this)">EP</button>
             </div>
           </div>
-
-          <!-- Modo PER (só aparece quando há PER) -->
           <div class="ctrl-group" id="perModeGroup" style="display:none;">
             <span class="ctrl-label">Eixo X</span>
             <div class="btn-toggle-group" id="perModeButtons">
@@ -804,11 +614,7 @@ footer strong { color: var(--gold); }
               <button class="toggle-btn" onclick="setPerMode('periods',this)">Períodos</button>
             </div>
           </div>
-
-          <!-- Separador -->
           <div class="ctrl-sep"></div>
-
-          <!-- Limites de eixo -->
           <div class="ctrl-group">
             <span class="ctrl-label">Eixo Y Global</span>
             <div class="axis-inputs">
@@ -817,11 +623,7 @@ footer strong { color: var(--gold); }
               <input type="number" id="yMax" placeholder="Máx" class="axis-input" oninput="propagateGlobalY()">
             </div>
           </div>
-
-          <!-- Separador -->
           <div class="ctrl-sep"></div>
-
-          <!-- Export -->
           <div class="ctrl-group">
             <span class="ctrl-label">Exportar</span>
             <div class="btn-toggle-group">
@@ -829,23 +631,16 @@ footer strong { color: var(--gold); }
               <button class="toggle-btn export-btn" onclick="exportAllPNG()">⬇ Todos</button>
             </div>
           </div>
+        </div>
 
-        </div><!-- /charts-toolbar -->
-
-        <!-- ── NAVEGAÇÃO INDIVIDUAL ── -->
         <div class="charts-nav" id="chartsNav" style="display:none;">
           <button class="nav-btn" onclick="navigateChart(-1)">← Anterior</button>
           <span class="nav-info" id="navInfo"></span>
           <button class="nav-btn" onclick="navigateChart(1)">Próximo →</button>
         </div>
-
-        <!-- ── GRID DE GRÁFICOS ── -->
         <div class="charts-grid" id="chartsGrid"></div>
-
-      </div><!-- /chartsMain -->
-    </div><!-- /tab-charts -->
-
-  </main>
+      </div>
+    </div></main>
 
   <footer>
     <strong>DataAves</strong> · GEAVES – Grupo de Estudos em Avicultura  ·
@@ -853,852 +648,11 @@ footer strong { color: var(--gold); }
     Desenvolvido para uso acadêmico e de pesquisa.
     <div style="margin-top: 5px;">Dr. Marcos Santos</div>
   </footer>
-  
-
-
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script>
-/* ── ESTADO GLOBAL ─────────────────────────────────────────────── */
-const ID_COLS   = ['TR', 'REP', 'PER'];
-let workbook    = null;
-let activeSheet = null;
-let parsedData  = null;
-let decimalMode = null;
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script type="module" src="assets/js/app.js"></script>
 
-/* ══ TABS ══════════════════════════════════════════════════════════ */
-function switchTab(tabId, btnEl) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const panel = document.getElementById('tab-' + tabId);
-  if (panel) panel.classList.add('active');
-  if (btnEl) btnEl.classList.add('active');
-  if (tabId === 'descriptive') {
-    renderDescriptive();
-    const leg = document.getElementById('cvLegend');
-    if (leg) leg.style.display = parsedData ? 'flex' : 'none';
-  }
-  if (tabId === 'charts') {
-    if (typeof Plotly !== 'undefined') {
-      renderCharts();
-    } else {
-      setTimeout(function(){ renderCharts(); }, 800);
-    }
-  }
-}
-
-/* ══ UPLOAD ════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  const dz = document.getElementById('dropzone');
-  const fi = document.getElementById('fileInput');
-  dz.addEventListener('click', () => fi.click());
-  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dz-hover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dz-hover'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault(); dz.classList.remove('dz-hover');
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-  });
-  fi.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-});
-
-function handleFile(file) {
-  if (!/\.(xlsx|xls)$/i.test(file.name)) {
-    showFileInfo('Arquivo inválido. Envie um .xlsx ou .xls.', 'error'); return;
-  }
-  const r = new FileReader();
-  r.onload = e => {
-    try {
-      workbook = XLSX.read(e.target.result, { type: 'array' });
-      showFileInfo('<strong>' + file.name + '</strong> — ' + (file.size/1024).toFixed(1) + ' KB', 'ok');
-      populateSheetButtons(workbook.SheetNames);
-      resetResults();
-    } catch(err) { showFileInfo('Não foi possível ler o arquivo.', 'error'); }
-  };
-  r.readAsArrayBuffer(file);
-}
-
-function showFileInfo(html, type) {
-  const el = document.getElementById('fileInfo');
-  el.innerHTML = html;
-  el.className = 'file-info ' + type;
-}
-
-function populateSheetButtons(names) {
-  document.getElementById('sheetCount').textContent = names.length;
-  const c = document.getElementById('sheetButtons');
-  c.innerHTML = '';
-  names.forEach(function(name) {
-    const btn = document.createElement('button');
-    btn.className   = 'sheet-pill';
-    btn.textContent = name;
-    btn.onclick     = function() { selectSheet(name, btn); };
-    c.appendChild(btn);
-  });
-  document.getElementById('sheetSection').style.display   = 'block';
-  document.getElementById('decimalSection').style.display = 'none';
-  document.getElementById('btnValidate').classList.add('hidden');
-  activeSheet = null;
-  parsedData  = null;
-}
-
-function selectSheet(name, btnEl) {
-  document.querySelectorAll('.sheet-pill').forEach(function(b) { b.classList.remove('active'); });
-  btnEl.classList.add('active');
-  activeSheet = name;
-  const raw = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header:1, raw:false, defval:'' });
-  if (raw.length < 2) {
-    showDecimalBadge('none');
-    parsedData = null;
-    document.getElementById('btnValidate').classList.add('hidden');
-    return;
-  }
-  const result = normalizeDecimals(raw);
-  decimalMode  = result.mode;
-  parsedData   = result.data;
-  showDecimalBadge(decimalMode);
-  document.getElementById('btnValidate').classList.remove('hidden');
-  document.getElementById('btnReset').classList.add('hidden');
-  resetResults();
-}
-
-function normalizeDecimals(raw) {
-  var commas = 0, points = 0;
-  for (var r = 1; r < raw.length; r++)
-    for (var c = 0; c < raw[r].length; c++) {
-      var v = String(raw[r][c]).trim();
-      if (!v || v.toUpperCase() === 'NA') continue;
-      if (/^\d+,\d+$/.test(v)) commas++;
-      if (/^\d+\.\d+$/.test(v)) points++;
-    }
-  var mode = commas && !points ? 'comma' : points && !commas ? 'point' : commas && points ? 'mixed' : 'none';
-  var headers = raw[0].map(function(h) { return String(h).trim(); });
-  var data = [];
-  for (var r = 1; r < raw.length; r++) {
-    var row = raw[r];
-    if (row.every(function(c) { return !String(c).trim(); })) continue;
-    var obj = {};
-    headers.forEach(function(h, i) {
-      var cell = String(row[i] !== undefined && row[i] !== null ? row[i] : '').trim();
-      if (cell.toUpperCase() === 'NA') obj[h] = 'NA';
-      else if (!cell)                  obj[h] = '';
-      else {
-        var n = parseFloat(cell.replace(',', '.'));
-        obj[h] = isNaN(n) ? cell : n;
-      }
-    });
-    data.push(obj);
-  }
-  return { mode: mode, data: data };
-}
-
-function showDecimalBadge(mode) {
-  var M = {
-    comma: { cls:'dec-warn', text:'Virgula detectada. Convertido para ponto automaticamente.' },
-    point: { cls:'dec-ok',   text:'Ponto decimal. Nenhuma conversao necessaria.' },
-    mixed: { cls:'dec-err',  text:'Mistura de virgula e ponto! Verifique a planilha.' },
-    none:  { cls:'dec-info', text:'Nenhum decimal encontrado nesta aba.' }
-  };
-  var m = M[mode] || M.none;
-  var el = document.getElementById('decimalInfo');
-  el.className   = 'decimal-badge ' + m.cls;
-  el.textContent = m.text;
-  document.getElementById('decimalSection').style.display = 'block';
-}
-
-/* ══ VALIDATION ════════════════════════════════════════════════════ */
-function runValidationAndRender() {
-  if (!parsedData || !parsedData.length) return;
-  var headers = Object.keys(parsedData[0]);
-  var checks = [], errors = [];
-
-  var hasTR  = headers.some(function(h){ return h.toUpperCase()==='TR'; });
-  var hasREP = headers.some(function(h){ return h.toUpperCase()==='REP'; });
-  checks.push({ label:'Colunas obrigatorias TR e REP presentes', ok: hasTR && hasREP,
-    detail: !hasTR&&!hasREP?'TR e REP ausentes.':!hasTR?'TR ausente.':!hasREP?'REP ausente.':null });
-  if (!hasTR||!hasREP) errors.push({ rule:'Colunas obrigatorias', message:'TR e/ou REP nao encontradas.' });
-
-  var badSym = headers.filter(function(h){ return /[%$*@#!?&()/\\]/.test(h); });
-  checks.push({ label:'Cabecalhos sem simbolos proibidos', ok:!badSym.length,
-    detail: badSym.length ? 'Colunas: '+badSym.join(', ') : null });
-  if (badSym.length) errors.push({ rule:'Simbolos proibidos', message:badSym.join(', ') });
-
-  var badFmt = headers.filter(function(h){ return /[áéíóúãõâêîôûàçÁÉÍÓÚÃÕÂÊÎÔÛÀÇ]/.test(h) || / /.test(h); });
-  checks.push({ label:'Cabecalhos sem espacos ou acentos', ok:!badFmt.length,
-    detail: badFmt.length ? 'Colunas: '+badFmt.join(', ') : null });
-  if (badFmt.length) errors.push({ rule:'Espacos/acentos', message:badFmt.join(', ') });
-
-  var seen={}, dupes=[];
-  headers.forEach(function(h){ var k=h.toUpperCase(); if(seen[k]) dupes.push(h); seen[k]=true; });
-  checks.push({ label:'Sem siglas duplicadas', ok:!dupes.length,
-    detail: dupes.length ? 'Duplicatas: '+dupes.join(', ') : null });
-  if (dupes.length) errors.push({ rule:'Siglas duplicadas', message:dupes.join(', ') });
-
-  var empRows=[];
-  parsedData.forEach(function(row,i){
-    var ec=headers.filter(function(h){ var v=row[h]; return v===''||v===null||v===undefined; });
-    if(ec.length) empRows.push({row:i+2,cols:ec});
-  });
-  checks.push({ label:'Sem celulas vazias — parcelas perdidas devem ser NA', ok:!empRows.length,
-    detail: empRows.length ? empRows.length+' linha(s) com celula vazia' : null });
-  empRows.forEach(function(r){ errors.push({ rule:'Celula vazia', message:'Linha '+r.row+': use NA.' }); });
-
-  var varCols=headers.filter(function(h){ return ID_COLS.indexOf(h.toUpperCase())===-1; });
-  var nonNum=[];
-  parsedData.forEach(function(row,i){
-    varCols.forEach(function(col){
-      var v=row[col];
-      if(v==='NA'||v===''||v===null||v===undefined) return;
-      if(typeof v!=='number') nonNum.push({row:i+2,col:col,val:v});
-    });
-  });
-  checks.push({ label:'Variaveis de resposta numericas (ou NA)', ok:!nonNum.length,
-    detail: nonNum.length ? nonNum.length+' nao-numerica(s)' : null });
-  nonNum.slice(0,20).forEach(function(r){ errors.push({ rule:'Valor nao-numerico', message:'Linha '+r.row+', "'+r.col+'": "'+r.val+'"' }); });
-
-  checks.push({ label:'Separador decimal consistente', ok: decimalMode!=='mixed',
-    detail: decimalMode==='mixed' ? 'Mistura de virgula e ponto detectada.' : null });
-  if (decimalMode==='mixed') errors.push({ rule:'Decimal misto', message:'Mistura detectada.' });
-
-  renderResults(checks, errors, headers);
-  document.getElementById('btnReset').classList.remove('hidden');
-}
-
-function renderResults(checks, errors, headers) {
-  document.getElementById('resultsEmpty').style.display   = 'none';
-  document.getElementById('resultsContent').style.display = 'block';
-  var allOk  = !errors.length;
-  var banner = document.getElementById('summaryBanner');
-  banner.className = 'summary-banner ' + (allOk ? 'banner-ok' : 'banner-err');
-  banner.innerHTML = allOk
-    ? '<span class="banner-icon">Dados aprovados!</span><div><strong>Todas as '+checks.length+' regras GEAVES satisfeitas.</strong></div>'
-    : '<span class="banner-icon">aviso</span><div><strong>'+errors.length+' problema(s)</strong> em '+checks.filter(function(c){return !c.ok;}).length+' regra(s). Corrija antes de prosseguir.</div>';
-  document.getElementById('previewSheetName').textContent  = activeSheet;
-  document.getElementById('previewDimensions').textContent = parsedData.length+' linha(s) x '+headers.length+' coluna(s) — aba: "'+activeSheet+'"';
-  renderPreviewTable(headers);
-  document.getElementById('checklistItems').innerHTML = checks.map(function(c){
-    return '<div class="check-item '+(c.ok?'check-ok':'check-fail')+'"><span class="check-icon">'+(c.ok?'OK':'ERRO')+'</span><div><span class="check-label">'+c.label+'</span>'+(c.detail?'<span class="check-detail">'+c.detail+'</span>':'')+'</div></div>';
-  }).join('');
-  var eb = document.getElementById('errorDetails');
-  if (errors.length) {
-    eb.style.display='block';
-    document.getElementById('errorList').innerHTML=errors.map(function(e){
-      return '<div class="error-item"><span class="error-rule">'+e.rule+'</span><span class="error-msg">'+e.message+'</span></div>';
-    }).join('');
-  } else { eb.style.display='none'; }
-}
-
-function renderPreviewTable(headers) {
-  var html='<table><thead><tr>'+headers.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
-  parsedData.slice(0,8).forEach(function(row){
-    html+='<tr>'+headers.map(function(h){
-      var v=row[h];
-      if(v==='NA') return '<td class="cell-na">NA</td>';
-      if(v===''||v===null||v===undefined) return '<td class="cell-empty">vazio</td>';
-      return '<td>'+v+'</td>';
-    }).join('')+'</tr>';
-  });
-  if(parsedData.length>8) html+='<tr><td colspan="'+headers.length+'" style="text-align:center;padding:8px;font-style:italic;">... mais '+(parsedData.length-8)+' linha(s)</td></tr>';
-  document.getElementById('previewTableWrap').innerHTML=html+'</tbody></table>';
-}
-
-function resetResults() {
-  document.getElementById('resultsEmpty').style.display   = 'flex';
-  document.getElementById('resultsContent').style.display = 'none';
-}
-
-function resetUpload() {
-  workbook=activeSheet=parsedData=decimalMode=null;
-  document.getElementById('fileInput').value              = '';
-  document.getElementById('fileInfo').className           = 'file-info hidden';
-  document.getElementById('sheetSection').style.display   = 'none';
-  document.getElementById('decimalSection').style.display = 'none';
-  document.getElementById('btnValidate').classList.add('hidden');
-  document.getElementById('btnReset').classList.add('hidden');
-  resetResults();
-}
-
-/* ══ DESCRIPTIVE STATISTICS ════════════════════════════════════════ */
-function renderDescriptive() {
-  var container = document.getElementById('descContent');
-  var empty     = document.getElementById('descEmpty');
-  var banner    = document.getElementById('descBanner');
-  if (!parsedData || !parsedData.length) {
-    empty.style.display='flex'; container.style.display='none'; banner.style.display='none'; return;
-  }
-  empty.style.display='none'; container.style.display='block';
-  var headers    = Object.keys(parsedData[0]);
-  var varCols    = headers.filter(function(h){ return ID_COLS.indexOf(h.toUpperCase())===-1; });
-  var trKey      = headers.find(function(h){ return h.toUpperCase()==='TR'; }) || 'TR';
-  var perKey     = headers.find(function(h){ return h.toUpperCase()==='PER'; }) || null;
-  var tSet={}, treatments=[];
-  parsedData.forEach(function(r){ if(!tSet[r[trKey]]){tSet[r[trKey]]=true; treatments.push(r[trKey]);} });
-  treatments.sort(function(a,b){return a-b;});
-  var periods=[null];
-  if(perKey){ var pSet={}; periods=[]; parsedData.forEach(function(r){ if(!pSet[r[perKey]]){pSet[r[perKey]]=true;periods.push(r[perKey]);} }); periods.sort(function(a,b){return a-b;}); }
-  banner.style.display='block';
-  banner.innerHTML='<span class="desc-banner-icon">Estatistica</span><div>Aba <strong>"'+activeSheet+'"</strong> — <strong>'+treatments.length+'</strong> trat. · <strong>'+varCols.length+'</strong> var. · <strong>'+parsedData.length+'</strong> linhas</div>';
-  container.innerHTML='';
-  varCols.forEach(function(varName){
-    var section=document.createElement('div');
-    section.className='desc-section';
-    section.innerHTML='<div class="desc-var-header"><span class="desc-var-name">'+varName+'</span><span class="desc-var-label">Estatistica descritiva por tratamento'+(perKey?' e periodo':'')+'</span></div>';
-    periods.forEach(function(per){
-      var perRows=perKey?parsedData.filter(function(r){return String(r[perKey])===String(per);}):parsedData;
-      if(perKey&&per!==null){var l=document.createElement('p');l.className='desc-per-label';l.textContent='Periodo: '+per;section.appendChild(l);}
-      var statsByTR=treatments.map(function(tr){
-        var rows=perRows.filter(function(r){return String(r[trKey])===String(tr);});
-        var values=rows.map(function(r){return r[varName];}).filter(function(v){return v!=='NA'&&v!==''&&v!==null&&v!==undefined&&typeof v==='number';});
-        return {tr:tr, stats:computeStats(values), naCount:rows.length-values.length};
-      });
-      section.appendChild(buildDescTable(statsByTR));
-    });
-    container.appendChild(section);
-  });
-}
-
-function computeStats(values) {
-  var n=values.length;
-  if(!n) return {n:0,mean:null,median:null,sd:null,cv:null,min:null,max:null,se:null};
-  var sorted=values.slice().sort(function(a,b){return a-b;});
-  var sum=values.reduce(function(a,v){return a+v;},0), mean=sum/n;
-  var mid=Math.floor(n/2), median=n%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
-  var variance=n>1?values.reduce(function(a,v){return a+Math.pow(v-mean,2);},0)/(n-1):0;
-  var sd=Math.sqrt(variance), se=n>1?sd/Math.sqrt(n):0;
-  var cv=mean?(sd/Math.abs(mean))*100:null;
-  return {n:n,mean:fmt(mean,3),median:fmt(median,3),sd:fmt(sd,3),se:fmt(se,3),cv:cv!==null?fmt(cv,2):null,min:fmt(sorted[0],3),max:fmt(sorted[n-1],3)};
-}
-
-function buildDescTable(statsByTR) {
-  var wrap = document.createElement('div');
-  wrap.className = 'desc-table-wrap';
-
-  /* ── Cabeçalho: Estatística | TR1 | TR2 | ... | Geral ── */
-  var h = '<table class="desc-table"><thead><tr>';
-  h += '<th class="stat-col-hdr">Tratamentos</th>';
-  statsByTR.forEach(function(x) {
-    h += '<th>' + x.tr + '</th>';
-  });
-  h += '<th class="global-col-hdr">Geral</th>';
-  h += '</tr></thead><tbody>';
-
-  /* ── Pré-calcula linha Geral ── */
-  var totalN = statsByTR.reduce(function(s,x){ return s+x.stats.n; }, 0);
-  var gM=null, gMin=null, gMax=null, tNA=0, pSD=null, gCV=null, totalSE=null;
-  if (totalN) {
-    gM = statsByTR.reduce(function(s,x){ return s+(x.stats.n?x.stats.mean*x.stats.n:0); },0) / totalN;
-    var validSt = statsByTR.filter(function(x){ return x.stats.n; });
-    gMin = Math.min.apply(null, validSt.map(function(x){ return x.stats.min; }));
-    gMax = Math.max.apply(null, validSt.map(function(x){ return x.stats.max; }));
-    tNA  = statsByTR.reduce(function(s,x){ return s+x.naCount; }, 0);
-    var pV = statsByTR.reduce(function(s,x){
-      return x.stats.n<2 ? s : s+(x.stats.n-1)*Math.pow(x.stats.sd,2);
-    },0) / Math.max(totalN - validSt.length, 1);
-    pSD  = Math.sqrt(pV);
-    gCV  = gM ? (pSD/Math.abs(gM))*100 : null;
-    totalSE = totalN>1 ? pSD/Math.sqrt(totalN) : null;
-  }
-
-  /* ── Definição das linhas de estatística ── */
-  var rows = [
-    { key:'n',      label:'n',        decimals:0,  isCV:false },
-    { key:'mean',   label:'Média',    decimals:4,  isCV:false },
-    { key:'median', label:'Mediana',  decimals:4,  isCV:false },
-    { key:'sd',     label:'DP',       decimals:4,  isCV:false },
-    { key:'se',     label:'EP',       decimals:6,  isCV:false },
-    { key:'cv',     label:'CV (%)',   decimals:2,  isCV:true  },
-    { key:'min',    label:'Mín',      decimals:4,  isCV:false },
-    { key:'max',    label:'Máx',      decimals:4,  isCV:false },
-    { key:'na',     label:'NA',       decimals:0,  isCV:false },
-  ];
-
-  /* Valores gerais indexados por key */
-  var generalVals = {
-    n:      totalN,
-    mean:   gM,
-    median: null,
-    sd:     pSD,
-    se:     totalSE,
-    cv:     gCV,
-    min:    gMin,
-    max:    gMax,
-    na:     tNA
-  };
-
-  rows.forEach(function(row, rowIdx) {
-    var isOdd = rowIdx % 2 === 0;
-    h += '<tr>';
-
-    /* Célula rótulo da estatística */
-    h += '<td class="stat-row-label">' + row.label + '</td>';
-
-    /* Célula de cada tratamento */
-    statsByTR.forEach(function(x) {
-      var val = row.key === 'na' ? x.naCount : x.stats[row.key];
-      var s   = x.stats;
-
-      if (row.isCV) {
-        /* CV com semáforo de cor */
-        if (val !== null && val !== '—' && !isNaN(val)) {
-          h += '<td><span class="cv-badge ' + cvCls(val) + '">' + parseFloat(val).toFixed(row.decimals) + '%</span></td>';
-        } else {
-          h += '<td>—</td>';
-        }
-      } else if (row.key === 'na') {
-        h += '<td class="' + (val > 0 ? 'na-cell' : '') + '">' + val + '</td>';
-      } else if (val === null || val === undefined || val === '—' || !s.n) {
-        h += '<td>—</td>';
-      } else {
-        h += '<td>' + parseFloat(val).toFixed(row.decimals) + '</td>';
-      }
-    });
-
-    /* Célula Geral */
-    var gVal = generalVals[row.key];
-    if (row.isCV) {
-      if (gVal !== null && !isNaN(gVal)) {
-        h += '<td class="global-col"><span class="cv-badge ' + cvCls(gVal) + '">' + parseFloat(gVal).toFixed(row.decimals) + '%</span></td>';
-      } else { h += '<td class="global-col">—</td>'; }
-    } else if (row.key === 'na') {
-      h += '<td class="global-col ' + (gVal > 0 ? 'na-cell' : '') + '">' + gVal + '</td>';
-    } else if (row.key === 'median') {
-      h += '<td class="global-col">—</td>';
-    } else if (gVal === null || gVal === undefined || !totalN) {
-      h += '<td class="global-col">—</td>';
-    } else {
-      h += '<td class="global-col">' + parseFloat(gVal).toFixed(row.decimals) + '</td>';
-    }
-
-    h += '</tr>';
-  });
-
-  wrap.innerHTML = h + '</tbody></table>';
-  return wrap;
-}
-
-function cvCls(cv){return cv<10?'cv-low':cv<20?'cv-medium':cv<30?'cv-high':'cv-veryhigh';}
-function fmt(v,d){if(v===null||v===undefined||isNaN(v))return '—';return parseFloat(v.toFixed(d));}
-
-/* ══ CHARTS ════════════════════════════════════════════════════════ */
-var chartType   = 'bar';    // 'bar' | 'line' | 'box'
-var chartLayout = 'grid';   // 'grid' | 'single'
-var errorType   = 'sd';     // 'sd' | 'se'
-var perMode     = 'treatments'; // 'treatments' | 'periods'
-var currentIdx  = 0;
-var chartVars   = [];
-
-/* Paleta GEAVES — ferrugem → laranja → dourado → tons complementares */
-var COLORS = [
-  '#8B1A1A','#C8540A','#E8900A','#5A3E1B','#A0522D',
-  '#D2691E','#6B3A1F','#CD853F','#B8860B','#8B4513'
-];
-
-function setChartType(type, btn) {
-  chartType = type;
-  document.querySelectorAll('#chartTypeGroup .toggle-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  document.getElementById('errorBarGroup').style.display = (type === 'box') ? 'none' : 'flex';
-  refreshCharts();
-}
-
-function setLayout(layout, btn) {
-  chartLayout = layout;
-  document.querySelectorAll('#layoutGroup .toggle-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  currentIdx = 0;
-  refreshCharts();
-}
-
-function setErrorType(type, btn) {
-  errorType = type;
-  document.querySelectorAll('#errorTypeGroup .toggle-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  refreshCharts();
-}
-
-function setPerMode(mode, btn) {
-  perMode = mode;
-  document.querySelectorAll('#perModeButtons .toggle-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  refreshCharts();
-}
-
-function navigateChart(dir) {
-  currentIdx = Math.max(0, Math.min(chartVars.length - 1, currentIdx + dir));
-  refreshCharts();
-}
-
-/* ── Ponto de entrada — chamado pelo switchTab ── */
-function renderCharts() {
-  var empty = document.getElementById('chartsEmpty');
-  var main  = document.getElementById('chartsMain');
-  if (!parsedData || !parsedData.length) {
-    empty.style.display = 'flex'; main.style.display = 'none'; return;
-  }
-  empty.style.display = 'none'; main.style.display = 'block';
-
-  var headers = Object.keys(parsedData[0]);
-  chartVars   = headers.filter(function(h){ return ID_COLS.indexOf(h.toUpperCase()) === -1; });
-
-  /* Mostra/oculta controle de PER */
-  var perKey = headers.find(function(h){ return h.toUpperCase()==='PER'; });
-  document.getElementById('perModeGroup').style.display = perKey ? 'flex' : 'none';
-
-  refreshCharts();
-}
-
-function refreshCharts() {
-  if (!parsedData || !chartVars.length) return;
-  var grid = document.getElementById('chartsGrid');
-  var nav  = document.getElementById('chartsNav');
-  grid.innerHTML = '';
-
-  var headers    = Object.keys(parsedData[0]);
-  var trKey      = headers.find(function(h){ return h.toUpperCase()==='TR'; }) || 'TR';
-  var perKey     = headers.find(function(h){ return h.toUpperCase()==='PER'; }) || null;
-
-  /* Tratamentos únicos ordenados */
-  var tSet={}, treatments=[];
-  parsedData.forEach(function(r){ if(!tSet[r[trKey]]){tSet[r[trKey]]=true;treatments.push(r[trKey]);} });
-  treatments.sort(function(a,b){return a-b;});
-
-  /* Períodos únicos ordenados */
-  var periods = [null];
-  if (perKey) {
-    var pSet={}; periods=[];
-    parsedData.forEach(function(r){ if(!pSet[r[perKey]]){pSet[r[perKey]]=true;periods.push(r[perKey]);} });
-    periods.sort(function(a,b){return a-b;});
-  }
-
-  /* Quais variáveis renderizar */
-  var varsToRender = chartLayout === 'single' ? [chartVars[currentIdx]] : chartVars;
-
-  /* Atualiza grade */
-  if (chartLayout === 'single') {
-    grid.className = 'charts-grid single-mode';
-    nav.style.display = 'flex';
-    document.getElementById('navInfo').textContent =
-      (currentIdx+1) + ' / ' + chartVars.length + ' — ' + chartVars[currentIdx];
-  } else {
-    grid.className = 'charts-grid';
-    nav.style.display = 'none';
-  }
-
-  varsToRender.forEach(function(varName, vIdx) {
-    var card  = document.createElement('div');
-    card.className = 'chart-card';
-    var divId  = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
-    var yMinId = 'ymin_' + divId;
-    var yMaxId = 'ymax_' + divId;
-
-    card.innerHTML =
-      '<div class="chart-card-title">' +
-        '<span>' + varName + '</span>' +
-        '<div style="display:flex;align-items:center;gap:6px;">' +
-          '<label style="font-size:0.68rem;opacity:0.85;">Y:</label>' +
-          '<input type="number" id="' + yMinId + '" placeholder="mín"' +
-            ' class="card-axis-input" title="Y mínimo"' +
-            ' oninput="applyCardAxis(\'' + divId + '\',\'' + yMinId + '\',\'' + yMaxId + '\')">' +
-          '<span style="font-size:0.75rem;opacity:0.7;">–</span>' +
-          '<input type="number" id="' + yMaxId + '" placeholder="máx"' +
-            ' class="card-axis-input" title="Y máximo"' +
-            ' oninput="applyCardAxis(\'' + divId + '\',\'' + yMinId + '\',\'' + yMaxId + '\')">' +
-          '<button class="chart-dl-btn" onclick="downloadChart(\'' + divId + '\',\'' + varName + '\')">⬇ PNG</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="chart-card-body">' +
-        '<div id="' + divId + '" style="width:100%;height:' + (chartLayout==='single'?'500':'320') + 'px;"></div>' +
-      '</div>';
-
-    grid.appendChild(card);
-
-    /* Constrói traces dependendo do modo */
-    var traces = [];
-    var layout = buildPlotLayout(varName, treatments, periods);
-
-    if (chartType === 'box') {
-      traces = buildBoxTraces(varName, trKey, perKey, treatments, periods);
-    } else if (perKey && perMode === 'periods') {
-      traces = buildPeriodTraces(varName, trKey, perKey, treatments, periods);
-    } else {
-      traces = buildTreatmentTraces(varName, trKey, perKey, treatments, periods);
-    }
-
-    Plotly.newPlot(divId, traces, layout, {
-      responsive: true,
-      displaylogo: false,
-      modeBarButtonsToRemove: ['lasso2d','select2d','autoScale2d']
-    });
-
-    /* Aplica limites globais de Y se preenchidos */
-    var gYMin = parseFloat(document.getElementById('yMin').value);
-    var gYMax = parseFloat(document.getElementById('yMax').value);
-    if (!isNaN(gYMin) && !isNaN(gYMax)) {
-      document.getElementById(yMinId).value = gYMin;
-      document.getElementById(yMaxId).value = gYMax;
-    }
-  });
-}
-
-/* ── TRACES: tratamentos no eixo X (padrão) ── */
-function buildTreatmentTraces(varName, trKey, perKey, treatments, periods) {
-  var traces = [];
-  var xLabels = treatments.map(function(t){ return String(t); });
-
-  /* Se há períodos, uma série por período; senão, uma série única */
-  var seriesList = perKey ? periods : [null];
-
-  seriesList.forEach(function(per, pIdx) {
-    var rows = perKey
-      ? parsedData.filter(function(r){ return String(r[perKey])===String(per); })
-      : parsedData;
-
-    var means=[], errors=[], ns=[];
-    treatments.forEach(function(tr) {
-      var vals = rows
-        .filter(function(r){ return String(r[trKey])===String(tr); })
-        .map(function(r){ return r[varName]; })
-        .filter(function(v){ return typeof v==='number'; });
-      var st = computeStats(vals);
-      means.push(st.n ? st.mean : null);
-      errors.push(st.n ? (errorType==='sd' ? st.sd : st.se) : null);
-      ns.push(st.n);
-    });
-
-    var color  = COLORS[pIdx % COLORS.length];
-    var sName  = perKey ? 'Período ' + per : varName;
-    var hoverT = xLabels.map(function(x,i){
-      return 'Trat: '+x+'<br>Média: '+(means[i]!==null?parseFloat(means[i]).toFixed(4):'NA')+
-             '<br>'+(errorType==='sd'?'DP':'EP')+': '+(errors[i]!==null?parseFloat(errors[i]).toFixed(4):'NA')+
-             '<br>n: '+ns[i];
-    });
-
-    if (chartType === 'bar') {
-      traces.push({
-        type: 'bar', name: sName,
-        x: xLabels, y: means,
-        error_y: { type:'data', array: errors, visible:true, color: color, thickness:2, width:8 },
-        marker: { color: color, opacity: 0.88, line:{color:'rgba(0,0,0,0.15)',width:1} },
-        hovertext: hoverT, hoverinfo: 'text',
-        hoverlabel: { bgcolor: '#fff', bordercolor: color, font:{color:'#2A1005'} }
-      });
-    } else {
-      traces.push({
-        type: 'scatter', mode: 'lines+markers', name: sName,
-        x: xLabels, y: means,
-        error_y: { type:'data', array: errors, visible:true, color: color, thickness:2, width:8 },
-        line: { color: color, width:2.5 },
-        marker: { color: color, size:9, symbol:'circle', line:{color:'#fff',width:1.5} },
-        hovertext: hoverT, hoverinfo: 'text',
-        hoverlabel: { bgcolor:'#fff', bordercolor: color, font:{color:'#2A1005'} }
-      });
-    }
-  });
-
-  /* Injeta categoryarray no primeiro trace para travar a ordem */
-  if (traces.length) traces[0]._categoryarray = xLabels;
-  return traces;
-}
-
-/* ── TRACES: evolução temporal (eixo X = períodos) ── */
-function buildPeriodTraces(varName, trKey, perKey, treatments, periods) {
-  var traces = [];
-  var xLabels = periods.map(function(p){ return String(p); });
-
-  treatments.forEach(function(tr, tIdx) {
-    var trRows = parsedData.filter(function(r){ return String(r[trKey])===String(tr); });
-    var means=[], errors=[], ns=[];
-
-    periods.forEach(function(per) {
-      var vals = trRows
-        .filter(function(r){ return String(r[perKey])===String(per); })
-        .map(function(r){ return r[varName]; })
-        .filter(function(v){ return typeof v==='number'; });
-      var st = computeStats(vals);
-      means.push(st.n ? st.mean : null);
-      errors.push(st.n ? (errorType==='sd' ? st.sd : st.se) : null);
-      ns.push(st.n);
-    });
-
-    var color = COLORS[tIdx % COLORS.length];
-    var hoverT = xLabels.map(function(x,i){
-      return 'Período: '+x+'<br>Trat: '+tr+'<br>Média: '+(means[i]!==null?means[i].toFixed(4):'NA')+
-             '<br>'+(errorType==='sd'?'DP':'EP')+': '+(errors[i]!==null?errors[i].toFixed(4):'NA')+
-             '<br>n: '+ns[i];
-    });
-
-    if (chartType === 'bar') {
-      traces.push({
-        type:'bar', name:'Trat. '+tr,
-        x:xLabels, y:means,
-        error_y:{type:'data',array:errors,visible:true,color:color,thickness:2,width:6},
-        marker:{color:color,opacity:0.85},
-        hovertext:hoverT, hoverinfo:'text',
-        hoverlabel:{bgcolor:'#fff',bordercolor:color,font:{color:'#2A1005'}}
-      });
-    } else {
-      traces.push({
-        type:'scatter', mode:'lines+markers', name:'Trat. '+tr,
-        x:xLabels, y:means,
-        error_y:{type:'data',array:errors,visible:true,color:color,thickness:2,width:6},
-        line:{color:color,width:2.5},
-        marker:{color:color,size:8},
-        hovertext:hoverT, hoverinfo:'text',
-        hoverlabel:{bgcolor:'#fff',bordercolor:color,font:{color:'#2A1005'}}
-      });
-    }
-  });
-  return traces;
-}
-
-/* ── TRACES: boxplot com pontos individuais ── */
-function buildBoxTraces(varName, trKey, perKey, treatments, periods) {
-  var traces = [];
-  var seriesList = perKey ? periods : [null];
-
-  seriesList.forEach(function(per, pIdx) {
-    var rows = perKey
-      ? parsedData.filter(function(r){ return String(r[perKey])===String(per); })
-      : parsedData;
-
-    treatments.forEach(function(tr, tIdx) {
-      var vals = rows
-        .filter(function(r){ return String(r[trKey])===String(tr); })
-        .map(function(r){ return r[varName]; })
-        .filter(function(v){ return typeof v==='number'; });
-
-      if (!vals.length) return;
-
-      var color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
-      var lbl   = perKey ? 'T'+tr+' P'+per : String(tr);
-
-      traces.push({
-        type: 'box',
-        name: lbl,
-        y: vals,
-        x: vals.map(function(){ return lbl; }),
-        boxpoints: 'all',
-        jitter: 0.35,
-        pointpos: 0,
-        marker: { color: color, size: 6, opacity: 0.7,
-          line: { color: '#fff', width: 1 } },
-        line: { color: color, width: 2 },
-        fillcolor: color.replace(')', ',0.15)').replace('rgb','rgba'),
-        hoveron: 'boxes+points',
-        hovertemplate: 'Trat: '+tr+(perKey?'<br>Per: '+per:'')+'<br>Valor: %{y:.4f}<extra></extra>'
-      });
-    });
-  });
-  return traces;
-}
-
-/* ── Layout Plotly ── */
-function buildPlotLayout(varName, treatments, periods) {
-  var yMin = parseFloat(document.getElementById('yMin').value);
-  var yMax = parseFloat(document.getElementById('yMax').value);
-
-  var yRange = (!isNaN(yMin) && !isNaN(yMax)) ? [yMin, yMax] : null;
-
-  var isBox    = chartType === 'box';
-  var hasPer   = document.getElementById('perModeGroup').style.display !== 'none';
-  var xTitle   = isBox ? '' : (perMode === 'periods' && hasPer ? 'Período' : 'Tratamento');
-
-  /* Ordem categórica explícita */
-  var catArray = perMode === 'periods' && hasPer && periods
-    ? periods.map(function(p){ return String(p); })
-    : treatments.map(function(t){ return String(t); });
-
-  var layout = {
-    margin: { l:56, r:20, t:18, b:60 },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor:  '#fdf9f5',
-    font: { family:'Source Sans 3, sans-serif', size:12, color:'#2A1005' },
-    legend: { orientation:'h', y:-0.28, x:0.5, xanchor:'center',
-      font:{size:11}, bgcolor:'rgba(0,0,0,0)' },
-    xaxis: {
-      type: 'category',
-      categoryorder: 'array',
-      categoryarray: catArray,
-      title: { text: xTitle, font:{size:12, color:'#6B3A1F'}, standoff:10 },
-      gridcolor:  'rgba(139,26,26,0.08)',
-      linecolor:  'rgba(139,26,26,0.20)',
-      tickfont:   { size:11 }
-    },
-    yaxis: {
-      title: { text: varName, font:{size:12, color:'#6B3A1F'} },
-      gridcolor: 'rgba(139,26,26,0.08)',
-      linecolor:  'rgba(139,26,26,0.20)',
-      tickfont:   { size:11 },
-      zeroline:   false
-    },
-    hoverlabel: { font:{size:12} },
-    bargap:      0.30,
-    bargroupgap: 0.08
-  };
-
-  if (yRange) layout.yaxis.range = yRange;
-
-  return layout;
-}
-
-/* ── Controle de eixo individual por gráfico ── */
-function applyCardAxis(divId, yMinId, yMaxId) {
-  var el = document.getElementById(divId);
-  if (!el || !el.data) return;
-  var yMin = parseFloat(document.getElementById(yMinId).value);
-  var yMax = parseFloat(document.getElementById(yMaxId).value);
-  var update = {};
-  if (!isNaN(yMin) && !isNaN(yMax) && yMax > yMin) {
-    update['yaxis.range']      = [yMin, yMax];
-    update['yaxis.autorange']  = false;
-  } else {
-    update['yaxis.autorange']  = true;
-  }
-  Plotly.relayout(divId, update);
-}
-
-/* Quando o limite global de Y muda, propaga para todos os cards visíveis */
-function propagateGlobalY() {
-  var gYMin = parseFloat(document.getElementById('yMin').value);
-  var gYMax = parseFloat(document.getElementById('yMax').value);
-  if (isNaN(gYMin) || isNaN(gYMax) || gYMax <= gYMin) return;
-  chartVars.forEach(function(varName) {
-    var divId  = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
-    var yMinId = 'ymin_' + divId;
-    var yMaxId = 'ymax_' + divId;
-    var yMinEl = document.getElementById(yMinId);
-    var yMaxEl = document.getElementById(yMaxId);
-    if (!yMinEl || !yMaxEl) return;
-    yMinEl.value = gYMin;
-    yMaxEl.value = gYMax;
-    applyCardAxis(divId, yMinId, yMaxId);
-  });
-}
-
-/* ── Exportação ── */
-function downloadChart(divId, varName) {
-  Plotly.downloadImage(document.getElementById(divId), {
-    format:'png', filename: 'DataAves_'+varName, width:1200, height:700, scale:2
-  });
-}
-
-function exportCurrentPNG() {
-  var varName = chartLayout==='single' ? chartVars[currentIdx] : chartVars[0];
-  var divId   = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
-  downloadChart(divId, varName);
-}
-
-function exportAllPNG() {
-  chartVars.forEach(function(varName) {
-    var divId = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
-    var el = document.getElementById(divId);
-    if (el) {
-      Plotly.downloadImage(el, {
-        format:'png', filename:'DataAves_'+varName, width:1200, height:700, scale:2
-      });
-    }
-  });
-}
-  </script>
 </body>
 </html>
