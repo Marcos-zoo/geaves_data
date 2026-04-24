@@ -279,8 +279,8 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
   const catArray = perMode === 'periods' && hasPer && periods ? periods.map(String) : treatments.map(String);
 
   // O SEGREDO DO 20%: Subtrai 20% do mínimo natural e soma 15% ao máximo
-    let defaultMin = tMin - Math.abs(tMin) * 0.1;
-    let defaultMax = tMax + Math.abs(tMax) * 0.05;
+    let defaultMin = tMin - Math.abs(tMin) * 0.10;
+    let defaultMax = tMax + Math.abs(tMax) * 0.10;
 
   // Se o usuário digitou só um, o outro continua sendo automático!
   let finalMin = (globalMinVal !== "" && !isNaN(parseFloat(globalMinVal))) ? parseFloat(globalMinVal) : defaultMin;
