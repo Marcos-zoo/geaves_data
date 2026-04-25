@@ -1,7 +1,7 @@
 // assets/js/charts.js
 import { globalState, ID_COLS } from './state.js';
 
-let chartType   = 'bar';    // 'bar' | 'line' | 'box' | 'violin' | 'heatmap'
+let chartType   = 'bar';    // 'bar' | 'line' | 'box' | 'violin' | 'heatmap' | 'scatter'
 let chartLayout = 'grid';   // 'grid' | 'single'
 let errorType   = 'sd';     // 'sd' | 'se'
 let perMode     = 'treatments'; // 'treatments' | 'periods'
@@ -22,14 +22,10 @@ export function renderCharts() {
 
   const headers = Object.keys(globalState.parsedData[0]);
 
-  // 👇 O FILTRO INTELIGENTE 👇
+  // Filtro Inteligente: ignora colunas vazias
   chartVars = headers.filter(h => {
-    // 1. Ignora as colunas de identificação (TR, REP, PER)
     if (ID_COLS.indexOf(h.toUpperCase()) !== -1) return false;
-
-    // 2. Só aceita a coluna se ela tiver pelo menos UM dado numérico
-    const hasValidData = globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
-    return hasValidData;
+    return globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
   });
 
   const perKey = headers.find(h => h.toUpperCase()==='PER');
@@ -45,7 +41,6 @@ function refreshCharts() {
   grid.innerHTML = '';
 
   // ── DESVIO PARA O MAPA DE CALOR ──
-  // O Mapa de Calor é um gráfico único de Matriz, não segue a regra de "Cards"
   if (chartType === 'heatmap') {
     renderCorrelationHeatmap(grid);
     return;
@@ -67,8 +62,9 @@ function refreshCharts() {
   }
 
   const varsToRender = chartLayout === 'single' ? [chartVars[currentIdx]] : chartVars;
+  const isSingle = chartLayout === 'single';
 
-  if (chartLayout === 'single') {
+  if (isSingle) {
     grid.className = 'charts-grid single-mode';
     nav.style.display = 'flex';
     
@@ -90,9 +86,15 @@ function refreshCharts() {
     const card = document.createElement('div');
     card.className = 'chart-card';
     const divId  = 'chart_' + varName.replace(/[^a-zA-Z0-9]/g,'_');
+    const tableId = 'table_' + divId;
     const yMinId = 'ymin_' + divId;
     const yMaxId = 'ymax_' + divId;
 
+    const bodyStyle = isSingle 
+      ? 'display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;' 
+      : 'display: block;';
+
+    // Monta o HTML: a div da tabela só existe se for modo Single
     card.innerHTML = `
       <div class="chart-card-title">
         <span>${varName}</span>
@@ -104,20 +106,21 @@ function refreshCharts() {
           <button class="chart-dl-btn" onclick="downloadChart('${divId}','${varName}')">⬇ PNG</button>
         </div>
       </div>
-      <div class="chart-card-body">
-        <div id="${divId}" style="width:100%;height:${chartLayout==='single'?'500':'320'}px;"></div>
-      </div>`;
+      <div class="chart-card-body" style="${bodyStyle}">
+        <div id="${divId}" style="width:100%;height:${isSingle ? '520px' : '320px'};"></div>
+        ${isSingle ? `<div id="${tableId}" style="width:100%;height:520px;"></div>` : ''}
+      </div>
+    `;
 
     grid.appendChild(card);
 
-// ── ROTEAMENTO DOS GRÁFICOS (AQUI ESTAVA O SEGREDO) ──
+    // ── ROTEAMENTO DOS GRÁFICOS ──
     let traces = [];
     if (chartType === 'box') {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'box');
     } else if (chartType === 'violin') {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'violin');
     } else if (chartType === 'scatter') {
-      // Agora sim ele chama a nossa função de bolhas individuais!
       traces = buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods);
     } else if (perKey && perMode === 'periods') {
       traces = buildPeriodTraces(varName, trKey, perKey, treatments, periods);
@@ -131,12 +134,10 @@ function refreshCharts() {
       t.y.forEach((yVal, i) => {
         if (yVal === null) return;
         let yLow = yVal, yHigh = yVal;
-        
         if (t.error_y && t.error_y.array && t.error_y.array[i]) {
             yHigh += t.error_y.array[i];
             if (chartType !== 'bar') yLow -= t.error_y.array[i];
         }
-        
         if (yLow < tMin) tMin = yLow;
         if (yHigh > tMax) tMax = yHigh;
       });
@@ -147,38 +148,34 @@ function refreshCharts() {
 
     let layout = buildPlotLayout(varName, treatments, periods, tMin, tMax);
 
-    // 👇 NOVAS FERRAMENTAS DE INTERAÇÃO 👇
+    // ── FERRAMENTAS DE INTERAÇÃO DO PLOTLY ──
     const config = {
       responsive: true, 
       displaylogo: false, 
-      scrollZoom: true, // 🖱️ Habilita o zoom com a "bolinha" do mouse
-      modeBarButtonsToRemove: ['lasso2d'] // Remove apenas o laço, mantendo Box Select, Autoscale e Reset
+      scrollZoom: true, 
+      modeBarButtonsToRemove: ['lasso2d'] 
     };
 
     window.Plotly.newPlot(divId, traces, layout, config);
 
-    // Mantém as caixinhas sincronizadas caso haja valores globais no topo
+    if (isSingle) {
+      renderChartTable(tableId, varName, trKey, perKey, treatments, periods);
+    }
+
     const globalMinVal = document.getElementById('yMin').value;
     const globalMaxVal = document.getElementById('yMax').value;
     if (globalMinVal !== "") document.getElementById(yMinId).value = globalMinVal;
     if (globalMaxVal !== "") document.getElementById(yMaxId).value = globalMaxVal;
 
-    // 🧠 MÁGICA: Sincroniza as ferramentas do Plotly com os inputs do DataAves
+    // Sincronização dos eixos
     const plotElement = document.getElementById(divId);
     plotElement.on('plotly_relayout', function(eventData) {
-      
-      // Se o usuário deu zoom (Box Select, Mouse Scroll ou Arrastou o Eixo Y)
       if (eventData['yaxis.range[0]'] !== undefined && eventData['yaxis.range[1]'] !== undefined) {
         document.getElementById(yMinId).value = eventData['yaxis.range[0]'].toFixed(2);
         document.getElementById(yMaxId).value = eventData['yaxis.range[1]'].toFixed(2);
-      }
-      
-      // Se o usuário clicou em "Autoscale" ou "Reset Axes" na barrinha do gráfico
-      else if (eventData['yaxis.autorange'] === true || eventData['xaxis.autorange'] === true) {
-         // Limpa as caixinhas
+      } else if (eventData['yaxis.autorange'] === true || eventData['xaxis.autorange'] === true) {
          document.getElementById(yMinId).value = '';
          document.getElementById(yMaxId).value = '';
-         // Força o retorno para a NOSSA regra de visualização (10% embaixo e 5% em cima)
          window.applyCardAxis(divId, yMinId, yMaxId); 
       }
     });
@@ -189,50 +186,36 @@ function refreshCharts() {
 function calculatePearson(x, y) {
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
   let n = 0;
-  
   for (let i = 0; i < x.length; i++) {
     const valX = x[i];
     const valY = y[i];
-    
-    // Só calcula se os dois valores existirem e forem números válidos (Ignora NA)
     if (typeof valX === 'number' && typeof valY === 'number' && !isNaN(valX) && !isNaN(valY)) {
-      sumX += valX;
-      sumY += valY;
-      sumXY += valX * valY;
-      sumX2 += valX * valX;
-      sumY2 += valY * valY;
-      n++;
+      sumX += valX; sumY += valY; sumXY += valX * valY;
+      sumX2 += valX * valX; sumY2 += valY * valY; n++;
     }
   }
-  
-  if (n <= 1) return null; // Sem dados suficientes
-  
+  if (n <= 1) return null; 
   const numerator = (n * sumXY) - (sumX * sumY);
   const denominator = Math.sqrt(((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)));
-  
   if (denominator === 0) return 0;
   return numerator / denominator;
 }
 
 // ── RENDERIZAÇÃO DO MAPA DE CALOR ──
 function renderCorrelationHeatmap(grid) {
-  grid.className = 'charts-grid single-mode'; // Força visualização grande
-  document.getElementById('chartsNav').style.display = 'none'; // Esconde menu de navegação
+  grid.className = 'charts-grid single-mode'; 
+  document.getElementById('chartsNav').style.display = 'none'; 
 
   const matrix = [];
   const textMatrix = [];
   
-  // Constrói a Matriz de Correlação
   for (let i = 0; i < chartVars.length; i++) {
-    matrix[i] = [];
-    textMatrix[i] = [];
+    matrix[i] = []; textMatrix[i] = [];
     const varY = chartVars[i];
     const valsY = globalState.parsedData.map(r => r[varY]);
-
     for (let j = 0; j < chartVars.length; j++) {
       const varX = chartVars[j];
       const valsX = globalState.parsedData.map(r => r[varX]);
-      
       const r = calculatePearson(valsX, valsY);
       matrix[i][j] = r;
       textMatrix[i][j] = r !== null ? r.toFixed(2) : 'NA';
@@ -253,40 +236,24 @@ function renderCorrelationHeatmap(grid) {
   
   grid.appendChild(card);
 
-  // Paleta customizada GEAVES: Ferrugem (-1) -> Creme (0) -> Azul Escuro (+1)
-  const customColorscale = [
-    [0.0, '#8B1A1A'], // Negativo forte (Vermelho)
-    [0.5, '#FDF6EC'], // Neutro (Creme)
-    [1.0, '#1A5276']  // Positivo forte (Azul)
-  ];
+  const customColorscale = [ [0.0, '#8B1A1A'], [0.5, '#FDF6EC'], [1.0, '#1A5276'] ];
 
   const trace = {
-    z: matrix,
-    x: chartVars,
-    y: chartVars,
-    type: 'heatmap',
-    text: textMatrix,
-    texttemplate: "%{text}",
-    colorscale: customColorscale, 
-    zmin: -1,
-    zmax: 1,
-    hoverinfo: 'x+y+z',
-    showscale: true,
+    z: matrix, x: chartVars, y: chartVars, type: 'heatmap',
+    text: textMatrix, texttemplate: "%{text}", colorscale: customColorscale, 
+    zmin: -1, zmax: 1, hoverinfo: 'x+y+z', showscale: true,
     colorbar: { title: 'Pearson (r)', titleside: 'right' }
   };
 
   const layout = {
     margin: { l: 80, r: 20, t: 40, b: 80 },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: '#fdf9f5',
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#fdf9f5',
     font: { family:'Source Sans 3, sans-serif', size:12, color:'#2A1005' },
-    xaxis: { tickangle: -45 },
-    yaxis: { autorange: 'reversed' } // Inverte o eixo Y para a diagonal ficar do topo-esquerdo para baixo-direito
+    xaxis: { tickangle: -45 }, yaxis: { autorange: 'reversed' } 
   };
 
   window.Plotly.newPlot(divId, [trace], layout, {responsive: true, displaylogo: false});
 }
-
 
 function getChartStats(values) {
   const n = values.length;
@@ -405,8 +372,35 @@ function buildDistributionTraces(varName, trKey, perKey, treatments, periods, ty
         traceObj.jitter = 0.35;
         traceObj.fillcolor = color.replace(')', ',0.15)').replace('rgb','rgba');
       }
-
       traces.push(traceObj);
+    });
+  });
+  return traces;
+}
+
+function buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods) {
+  const traces = [];
+  const seriesList = perKey ? periods : [null];
+
+  seriesList.forEach((per, pIdx) => {
+    const rows = perKey ? globalState.parsedData.filter(r => String(r[perKey])===String(per)) : globalState.parsedData;
+
+    treatments.forEach((tr, tIdx) => {
+      const vals = rows.filter(r => String(r[trKey])===String(tr)).map(r => r[varName]).filter(v => typeof v==='number');
+      if (!vals.length) return;
+
+      const color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
+      const lbl = perKey ? `T${tr} P${per}` : `Trat. ${tr}`;
+
+      traces.push({
+        type: 'scatter', mode: 'markers', name: lbl,
+        x: vals.map(() => String(tr)), y: vals,
+        marker: {
+          color: color, size: 14, opacity: 0.55,
+          line: { color: '#2A1005', width: 1.5 }
+        },
+        hovertemplate: `<b>Trat: ${tr}</b><br>Valor: %{y}<extra></extra>` 
+      });
     });
   });
   return traces;
@@ -437,8 +431,49 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
     xaxis: { type: 'category', categoryorder: 'array', categoryarray: catArray, title: { text: xTitle, standoff:10 } },
     yaxis: { title: { text: varName }, range: [finalMin, finalMax], autorange: false }
   };
-  
   return layout;
+}
+
+// ── GERAÇÃO DA TABELA INTERATIVA (PLOTLY TABLE) ──
+function renderChartTable(tableDivId, varName, trKey, perKey, treatments, periods) {
+  let headValues = perKey 
+    ? ['<b>Período</b>', '<b>Trat</b>', '<b>n</b>', '<b>Média</b>', '<b>DP</b>', '<b>CV%</b>'] 
+    : ['<b>Tratamento</b>', '<b>n</b>', '<b>Média</b>', '<b>DP</b>', '<b>CV%</b>'];
+
+  let colPer = [], colTrat = [], colN = [], colMean = [], colSD = [], colCV = [];
+  const seriesList = perKey ? periods : [null];
+
+  seriesList.forEach(per => {
+    const rows = perKey ? globalState.parsedData.filter(r => String(r[perKey])===String(per)) : globalState.parsedData;
+    treatments.forEach(tr => {
+      const vals = rows.filter(r => String(r[trKey])===String(tr)).map(r => r[varName]).filter(v => typeof v==='number');
+      const st = getChartStats(vals);
+
+      if (perKey) colPer.push(per);
+      colTrat.push(tr);
+      colN.push(st.n);
+      colMean.push(st.n ? st.mean.toFixed(2) : '-');
+      colSD.push(st.n ? st.sd.toFixed(2) : '-');
+      colCV.push((st.n && st.mean !== 0) ? ((st.sd/st.mean)*100).toFixed(2) : '-');
+    });
+  });
+
+  let cellValues = perKey ? [colPer, colTrat, colN, colMean, colSD, colCV] : [colTrat, colN, colMean, colSD, colCV];
+
+  const data = [{
+    type: 'table',
+    header: {
+      values: headValues, align: "center", line: {width: 1, color: '#2A1005'},
+      fill: {color: '#8B1A1A'}, font: {family: "Source Sans 3, sans-serif", size: 13, color: "white"}
+    },
+    cells: {
+      values: cellValues, align: "center", line: {color: "#2A1005", width: 1},
+      fill: {color: ['#FDF6EC', 'white']}, font: {family: "Source Sans 3, sans-serif", size: 12, color: "#2A1005"}, height: 28
+    }
+  }];
+
+  const layout = { margin: { l: 0, r: 0, t: 10, b: 0 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' };
+  window.Plotly.newPlot(tableDivId, data, layout, {responsive: true, displaylogo: false});
 }
 
 // ══ EXPOSIÇÃO GLOBAL PARA OS BOTÕES DO HTML ══
@@ -447,10 +482,7 @@ window.setChartType = (type, btn) => {
   document.querySelectorAll('#chartTypeGroup .toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   
-  // Esconde elementos que não fazem sentido no Mapa de Calor ou Violino/Boxplot
-  document.getElementById('errorBarGroup').style.display = (type === 'box' || type === 'violin' || type === 'heatmap') ? 'none' : 'flex';
-  
-  // Esconde controle de Layout no Mapa de Calor, pois ele é sempre "Single"
+  document.getElementById('errorBarGroup').style.display = (type === 'box' || type === 'violin' || type === 'heatmap' || type === 'scatter') ? 'none' : 'flex';
   document.getElementById('layoutGroup').style.opacity = (type === 'heatmap') ? '0.3' : '1';
   document.getElementById('layoutGroup').style.pointerEvents = (type === 'heatmap') ? 'none' : 'auto';
 
@@ -488,7 +520,6 @@ window.navigateChart = (dir) => {
   refreshCharts();
 };
 
-// ── AJUSTE INDEPENDENTE PARA OS CARTÕES INDIVIDUAIS ──
 window.applyCardAxis = (divId, yMinId, yMaxId) => {
   const el = document.getElementById(divId);
   if (!el || !el.data) return;
@@ -565,42 +596,3 @@ window.exportAllPNG = () => {
     if (el) window.Plotly.downloadImage(el, { format:'png', filename:'DataAves_'+varName, width:1200, height:700, scale:2 });
   });
 };
-
-function buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods) {
-  const traces = [];
-  const seriesList = perKey ? periods : [null];
-
-  seriesList.forEach((per, pIdx) => {
-    const rows = perKey ? globalState.parsedData.filter(r => String(r[perKey])===String(per)) : globalState.parsedData;
-
-    treatments.forEach((tr, tIdx) => {
-      const vals = rows.filter(r => String(r[trKey])===String(tr)).map(r => r[varName]).filter(v => typeof v==='number');
-      if (!vals.length) return;
-
-      const color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
-      const lbl = perKey ? `T${tr} P${per}` : `Trat. ${tr}`;
-
-      traces.push({
-        type: 'scatter',
-        mode: 'markers',
-        name: lbl,
-        // O eixo X é fixado como String para a bolinha cair exatamente em cima do nome do tratamento
-        x: vals.map(() => String(tr)), 
-        y: vals,
-        marker: {
-          color: color,
-          size: 14,             // Tamanho grande para dar o efeito "Bubble"
-          opacity: 0.55,        // Transparência (efeito vidro) revela os pontos sobrepostos
-          line: {
-            color: '#2A1005',   // Borda marrom escura (padrão GEAVES) para um contorno super elegante
-            width: 1.5
-          }
-        },
-        // Deixa a caixinha preta do mouse (hover) muito mais limpa e profissional
-        hovertemplate: `<b>Trat: ${tr}</b><br>Valor: %{y}<extra></extra>` 
-      });
-    });
-  });
-  
-  return traces;
-}
