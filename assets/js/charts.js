@@ -101,11 +101,15 @@ function refreshCharts() {
 
     grid.appendChild(card);
 
+// ── ROTEAMENTO DOS GRÁFICOS (AQUI ESTAVA O SEGREDO) ──
     let traces = [];
     if (chartType === 'box') {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'box');
     } else if (chartType === 'violin') {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'violin');
+    } else if (chartType === 'scatter') {
+      // Agora sim ele chama a nossa função de bolhas individuais!
+      traces = buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods);
     } else if (perKey && perMode === 'periods') {
       traces = buildPeriodTraces(varName, trKey, perKey, treatments, periods);
     } else {
@@ -134,14 +138,41 @@ function refreshCharts() {
 
     let layout = buildPlotLayout(varName, treatments, periods, tMin, tMax);
 
-    window.Plotly.newPlot(divId, traces, layout, {
-      responsive: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d','select2d','autoScale2d']
-    });
+    // 👇 NOVAS FERRAMENTAS DE INTERAÇÃO 👇
+    const config = {
+      responsive: true, 
+      displaylogo: false, 
+      scrollZoom: true, // 🖱️ Habilita o zoom com a "bolinha" do mouse
+      modeBarButtonsToRemove: ['lasso2d'] // Remove apenas o laço, mantendo Box Select, Autoscale e Reset
+    };
 
+    window.Plotly.newPlot(divId, traces, layout, config);
+
+    // Mantém as caixinhas sincronizadas caso haja valores globais no topo
     const globalMinVal = document.getElementById('yMin').value;
     const globalMaxVal = document.getElementById('yMax').value;
     if (globalMinVal !== "") document.getElementById(yMinId).value = globalMinVal;
     if (globalMaxVal !== "") document.getElementById(yMaxId).value = globalMaxVal;
+
+    // 🧠 MÁGICA: Sincroniza as ferramentas do Plotly com os inputs do DataAves
+    const plotElement = document.getElementById(divId);
+    plotElement.on('plotly_relayout', function(eventData) {
+      
+      // Se o usuário deu zoom (Box Select, Mouse Scroll ou Arrastou o Eixo Y)
+      if (eventData['yaxis.range[0]'] !== undefined && eventData['yaxis.range[1]'] !== undefined) {
+        document.getElementById(yMinId).value = eventData['yaxis.range[0]'].toFixed(2);
+        document.getElementById(yMaxId).value = eventData['yaxis.range[1]'].toFixed(2);
+      }
+      
+      // Se o usuário clicou em "Autoscale" ou "Reset Axes" na barrinha do gráfico
+      else if (eventData['yaxis.autorange'] === true || eventData['xaxis.autorange'] === true) {
+         // Limpa as caixinhas
+         document.getElementById(yMinId).value = '';
+         document.getElementById(yMaxId).value = '';
+         // Força o retorno para a NOSSA regra de visualização (10% embaixo e 5% em cima)
+         window.applyCardAxis(divId, yMinId, yMaxId); 
+      }
+    });
   });
 }
 
@@ -525,3 +556,42 @@ window.exportAllPNG = () => {
     if (el) window.Plotly.downloadImage(el, { format:'png', filename:'DataAves_'+varName, width:1200, height:700, scale:2 });
   });
 };
+
+function buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods) {
+  const traces = [];
+  const seriesList = perKey ? periods : [null];
+
+  seriesList.forEach((per, pIdx) => {
+    const rows = perKey ? globalState.parsedData.filter(r => String(r[perKey])===String(per)) : globalState.parsedData;
+
+    treatments.forEach((tr, tIdx) => {
+      const vals = rows.filter(r => String(r[trKey])===String(tr)).map(r => r[varName]).filter(v => typeof v==='number');
+      if (!vals.length) return;
+
+      const color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
+      const lbl = perKey ? `T${tr} P${per}` : `Trat. ${tr}`;
+
+      traces.push({
+        type: 'scatter',
+        mode: 'markers',
+        name: lbl,
+        // O eixo X é fixado como String para a bolinha cair exatamente em cima do nome do tratamento
+        x: vals.map(() => String(tr)), 
+        y: vals,
+        marker: {
+          color: color,
+          size: 14,             // Tamanho grande para dar o efeito "Bubble"
+          opacity: 0.55,        // Transparência (efeito vidro) revela os pontos sobrepostos
+          line: {
+            color: '#2A1005',   // Borda marrom escura (padrão GEAVES) para um contorno super elegante
+            width: 1.5
+          }
+        },
+        // Deixa a caixinha preta do mouse (hover) muito mais limpa e profissional
+        hovertemplate: `<b>Trat: ${tr}</b><br>Valor: %{y}<extra></extra>` 
+      });
+    });
+  });
+  
+  return traces;
+}
