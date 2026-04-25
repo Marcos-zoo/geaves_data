@@ -21,7 +21,16 @@ export function renderCharts() {
   empty.style.display = 'none'; main.style.display = 'block';
 
   const headers = Object.keys(globalState.parsedData[0]);
-  chartVars = headers.filter(h => ID_COLS.indexOf(h.toUpperCase()) === -1);
+
+  // 👇 O FILTRO INTELIGENTE 👇
+  chartVars = headers.filter(h => {
+    // 1. Ignora as colunas de identificação (TR, REP, PER)
+    if (ID_COLS.indexOf(h.toUpperCase()) !== -1) return false;
+
+    // 2. Só aceita a coluna se ela tiver pelo menos UM dado numérico
+    const hasValidData = globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
+    return hasValidData;
+  });
 
   const perKey = headers.find(h => h.toUpperCase()==='PER');
   document.getElementById('perModeGroup').style.display = perKey ? 'flex' : 'none';

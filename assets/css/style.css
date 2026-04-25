@@ -222,10 +222,10 @@ tbody td { padding: 12px 18px; color: var(--mid); border-bottom: 1px solid rgba(
 .tr-cell { font-weight: 700; color: var(--rust) !important; font-size: 0.88rem; }
 .na-cell { color: var(--amber) !important; font-weight: 700; }
 .cv-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-.cv-low      { background: #d4f5d4; color: #1a6b1a; }
-.cv-medium   { background: #fef3c7; color: #7a5500; }
-.cv-high     { background: #ffe0c0; color: #7a3000; }
-.cv-veryhigh { background: #fde8e8; color: var(--rust); }
+```.cv-low      { background: #d4f5d4; color: #1a6b1a; }
+```.cv-medium   { background: #fef3c7; color: #7a5500; }
+```.cv-high     { background: #ffe0c0; color: #7a3000; }
+```.cv-veryhigh { background: #fde8e8; color: var(--rust); }
 .cv-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; align-items: center; }
 .cv-legend-title { font-size: 0.78rem; font-weight: 600; color: var(--mid); letter-spacing: 0.5px; margin-right: 4px; }
 

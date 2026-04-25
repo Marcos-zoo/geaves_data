@@ -20,7 +20,11 @@ export function renderDescriptive() {
   if (leg) leg.style.display = 'flex';
 
   const headers = Object.keys(globalState.parsedData[0]);
-  const varCols = headers.filter(h => ID_COLS.indexOf(h.toUpperCase()) === -1);
+  const varCols = headers.filter(h => {
+    if (ID_COLS.indexOf(h.toUpperCase()) !== -1) return false;
+    return globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
+  });
+  
   const trKey   = headers.find(h => h.toUpperCase() === 'TR') || 'TR';
   const perKey  = headers.find(h => h.toUpperCase() === 'PER') || null;
 
@@ -89,7 +93,12 @@ export function exportDescriptiveToExcel() {
   if (!globalState.parsedData) return;
 
   const headers = Object.keys(globalState.parsedData[0]);
-  const varCols = headers.filter(h => ID_COLS.indexOf(h.toUpperCase()) === -1);
+  
+  // 👇 FILTRO NA EXPORTAÇÃO 👇
+  const varCols = headers.filter(h => {
+    if (ID_COLS.indexOf(h.toUpperCase()) !== -1) return false;
+    return globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
+  });
   const trKey   = headers.find(h => h.toUpperCase() === 'TR') || 'TR';
   const perKey  = headers.find(h => h.toUpperCase() === 'PER') || null;
 
