@@ -434,45 +434,71 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
   return layout;
 }
 
-// ── GERAÇÃO DA TABELA INTERATIVA (PLOTLY TABLE) ──
+// ── GERAÇÃO DA TABELA DE DADOS BRUTOS (PLOTLY TABLE) ──
 function renderChartTable(tableDivId, varName, trKey, perKey, treatments, periods) {
-  let headValues = perKey 
-    ? ['<b>Período</b>', '<b>Trat</b>', '<b>n</b>', '<b>Média</b>', '<b>DP</b>', '<b>CV%</b>'] 
-    : ['<b>Tratamento</b>', '<b>n</b>', '<b>Média</b>', '<b>DP</b>', '<b>CV%</b>'];
+  // 1. Identificar se existe a coluna de Repetição (REP) na planilha
+  const headersList = Object.keys(globalState.parsedData[0]);
+  const repKey = headersList.find(h => h.toUpperCase() === 'REP') || null;
 
-  let colPer = [], colTrat = [], colN = [], colMean = [], colSD = [], colCV = [];
-  const seriesList = perKey ? periods : [null];
+  // 2. Definir os cabeçalhos dinamicamente
+  let headValues = [];
+  if (perKey) headValues.push('<b>Período</b>');
+  headValues.push('<b>Trat</b>');
+  if (repKey) headValues.push('<b>Rep</b>');
+  headValues.push(`<b>${varName}</b>`);
 
-  seriesList.forEach(per => {
-    const rows = perKey ? globalState.parsedData.filter(r => String(r[perKey])===String(per)) : globalState.parsedData;
-    treatments.forEach(tr => {
-      const vals = rows.filter(r => String(r[trKey])===String(tr)).map(r => r[varName]).filter(v => typeof v==='number');
-      const st = getChartStats(vals);
+  // 3. Filtrar e extrair os dados brutos (ignora células em branco)
+  let rawData = globalState.parsedData.filter(row => typeof row[varName] === 'number' && !isNaN(row[varName]));
 
-      if (perKey) colPer.push(per);
-      colTrat.push(tr);
-      colN.push(st.n);
-      colMean.push(st.n ? st.mean.toFixed(2) : '-');
-      colSD.push(st.n ? st.sd.toFixed(2) : '-');
-      colCV.push((st.n && st.mean !== 0) ? ((st.sd/st.mean)*100).toFixed(2) : '-');
-    });
+  // 4. Organizar os dados por Período -> Tratamento -> Repetição
+  rawData.sort((a, b) => {
+    if (perKey && a[perKey] !== b[perKey]) return a[perKey] - b[perKey];
+    if (a[trKey] !== b[trKey]) return a[trKey] - b[trKey];
+    if (repKey) return a[repKey] - b[repKey];
+    return 0;
   });
 
-  let cellValues = perKey ? [colPer, colTrat, colN, colMean, colSD, colCV] : [colTrat, colN, colMean, colSD, colCV];
+  // 5. Separar em colunas para o Plotly
+  let colPer = [], colTrat = [], colRep = [], colVar = [];
+
+  rawData.forEach(row => {
+    if (perKey) colPer.push(row[perKey]);
+    colTrat.push(row[trKey]);
+    if (repKey) colRep.push(row[repKey]);
+    colVar.push(row[varName]);
+  });
+
+  let cellValues = [];
+  if (perKey) cellValues.push(colPer);
+  cellValues.push(colTrat);
+  if (repKey) cellValues.push(colRep);
+  cellValues.push(colVar);
 
   const data = [{
     type: 'table',
     header: {
-      values: headValues, align: "center", line: {width: 1, color: '#2A1005'},
-      fill: {color: '#8B1A1A'}, font: {family: "Source Sans 3, sans-serif", size: 13, color: "white"}
+      values: headValues,
+      align: "center",
+      line: {width: 1, color: '#2A1005'},
+      fill: {color: '#8B1A1A'}, // Padrão GEAVES
+      font: {family: "Source Sans 3, sans-serif", size: 13, color: "white"}
     },
     cells: {
-      values: cellValues, align: "center", line: {color: "#2A1005", width: 1},
-      fill: {color: ['#FDF6EC', 'white']}, font: {family: "Source Sans 3, sans-serif", size: 12, color: "#2A1005"}, height: 28
+      values: cellValues,
+      align: "center",
+      line: {color: "#2A1005", width: 1},
+      fill: {color: ['#FDF6EC', 'white']}, 
+      font: {family: "Source Sans 3, sans-serif", size: 12, color: "#2A1005"},
+      height: 26
     }
   }];
 
-  const layout = { margin: { l: 0, r: 0, t: 10, b: 0 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' };
+  const layout = {
+    margin: { l: 0, r: 0, t: 10, b: 0 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
+  };
+
   window.Plotly.newPlot(tableDivId, data, layout, {responsive: true, displaylogo: false});
 }
 
