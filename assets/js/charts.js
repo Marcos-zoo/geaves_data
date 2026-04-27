@@ -284,7 +284,7 @@ function buildTreatmentTraces(varName, trKey, perKey, treatments, periods) {
 
     const traceColor  = COLORS[pIdx % COLORS.length];
     const sName  = perKey ? 'Período ' + per : varName;
-    const hoverT = xLabels.map((x,i) => `Trat: ${x}<br>Média: ${means[i]!==null?means[i].toFixed(4):'NA'}<br>${errorType==='sd'?'DP':'EP'}: ${errors[i]!==null?errors[i].toFixed(4):'NA'}<br>n: ${ns[i]}`);
+    const hoverT = xLabels.map((x,i) => `Trat: ${x}<br>Média: ${means[i]!==null ? formatGeaves(means[i]) : 'NA'}<br>${errorType==='sd'?'DP':'EP'}: ${errors[i]!==null ? formatGeaves(errors[i]) : 'NA'}<br>n: ${ns[i]}`);
 
     const barColor = perKey ? traceColor : treatments.map((_, i) => COLORS[i % COLORS.length]);
     const errColor = perKey ? traceColor : '#4A2A1A';
@@ -622,3 +622,20 @@ window.exportAllPNG = () => {
     if (el) window.Plotly.downloadImage(el, { format:'png', filename:'DataAves_'+varName, width:1200, height:700, scale:2 });
   });
 };
+
+// ── REGRA GEAVES DE CASAS DECIMAIS ──
+function formatGeaves(value) {
+  if (typeof value !== 'number' || isNaN(value)) return '-';
+  
+  const absVal = Math.abs(value);
+  
+  if (absVal < 1) {
+    return value.toFixed(3); // Menor que 1: Três casas
+  } else if (absVal >= 1 && absVal < 10) {
+    return value.toFixed(2); // De 1 a 9.999: Duas casas
+  } else if (absVal >= 10 && absVal < 100) {
+    return value.toFixed(1); // De 10 a 99.999: Uma casa
+  } else {
+    return value.toFixed(0); // Acima de 100: Zero casas
+  }
+}

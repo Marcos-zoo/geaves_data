@@ -17,7 +17,8 @@ export function renderDescriptive() {
 
   empty.style.display = 'none'; 
   container.style.display = 'block';
-  if (leg) leg.style.display = 'flex';
+  // Legenda oculta (removida do visual clássico)
+  if (leg) leg.style.display = 'none';
 
   const headers = Object.keys(globalState.parsedData[0]);
   const varCols = headers.filter(h => {
@@ -48,7 +49,6 @@ export function renderDescriptive() {
   banner.style.justifyContent = 'space-between';
   banner.style.alignItems = 'center';
   
-  // AQUI FORAM AJUSTADAS AS CORES E ADICIONADO O ID "btnGeneratePdf"
   banner.innerHTML = `
     <div style="display:flex; align-items:center; gap:14px;">
       <span class="desc-banner-icon">📐</span>
@@ -94,7 +94,6 @@ export function exportDescriptiveToExcel() {
 
   const headers = Object.keys(globalState.parsedData[0]);
   
-  // 👇 FILTRO NA EXPORTAÇÃO 👇
   const varCols = headers.filter(h => {
     if (ID_COLS.indexOf(h.toUpperCase()) !== -1) return false;
     return globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
@@ -147,13 +146,22 @@ export function exportDescriptiveToExcel() {
 
       metrics.forEach(m => {
         let row = [m.l];
-        statsByTR.forEach(x => { row.push(m.k === 'na' ? x.naCount : x.stats[m.k]); });
-        if (m.k === 'mean') row.push(gM);
-        else if (m.k === 'sd') row.push(gSD);
-        else if (m.k === 'cv') row.push(gM ? (gSD/gM)*100 : null);
-        else if (m.k === 'na') row.push(tNA);
-        else if (m.k === 'n') row.push(totalN);
-        else row.push(null);
+        
+        // Aplica a regra GEAVES no Excel (transformando em Number para não dar erro no Excel)
+        statsByTR.forEach(x => { 
+          let val = m.k === 'na' ? x.naCount : x.stats[m.k];
+          row.push((val === null || m.k === 'n' || m.k === 'na') ? val : Number(formatGeaves(val)));
+        });
+
+        let gVal = null;
+        if (m.k === 'mean') gVal = gM;
+        else if (m.k === 'sd') gVal = gSD;
+        else if (m.k === 'cv') gVal = gM ? (gSD/gM)*100 : null;
+        else if (m.k === 'na') gVal = tNA;
+        else if (m.k === 'n') gVal = totalN;
+        
+        row.push((gVal === null || m.k === 'n' || m.k === 'na') ? gVal : Number(formatGeaves(gVal)));
+        
         aoa.push(row);
       });
       aoa.push([]); 
@@ -190,8 +198,10 @@ function buildDescTable(statsByTR) {
   let h = '<table class="desc-table"><thead><tr><th class="stat-col-hdr">Tratamentos</th>';
   statsByTR.forEach(x => { h += `<th>${x.tr}</th>`; });
   h += '<th class="global-col-hdr">Geral</th></tr></thead><tbody>';
+  
   let totalN = statsByTR.reduce((s,x) => s + x.stats.n, 0);
   let gM = null, gMin = null, gMax = null, tNA = 0, pSD = null, gCV = null, totalSE = null;
+  
   if (totalN) {
     gM = statsByTR.reduce((s,x) => s + (x.stats.n ? x.stats.mean * x.stats.n : 0), 0) / totalN;
     let validSt = statsByTR.filter(x => x.stats.n);
@@ -203,31 +213,63 @@ function buildDescTable(statsByTR) {
     gCV  = gM ? (pSD / Math.abs(gM)) * 100 : null;
     totalSE = totalN > 1 ? pSD / Math.sqrt(totalN) : null;
   }
+  
+  // Repare que as referências a "decimals" foram removidas, o formato GEAVES assume o controle.
   const rows = [
-    { key:'n', label:'n', decimals:0 }, { key:'mean', label:'Média', decimals:4 },
-    { key:'median', label:'Mediana', decimals:4 }, { key:'sd', label:'DP', decimals:4 },
-    { key:'se', label:'EP', decimals:6 }, { key:'cv', label:'CV (%)', decimals:2, isCV:true },
-    { key:'min', label:'Mín', decimals:4 }, { key:'max', label:'Máx', decimals:4 },
-    { key:'na', label:'NA', decimals:0 }
+    { key:'n', label:'n' }, { key:'mean', label:'Média' },
+    { key:'median', label:'Mediana' }, { key:'sd', label:'DP' },
+    { key:'se', label:'EP' }, { key:'cv', label:'CV (%)', isCV:true },
+    { key:'min', label:'Mín' }, { key:'max', label:'Máx' },
+    { key:'na', label:'NA' }
   ];
+  
   const generalVals = { n: totalN, mean: gM, median: null, sd: pSD, se: totalSE, cv: gCV, min: gMin, max: gMax, na: tNA };
+  
   rows.forEach(row => {
     h += `<tr><td class="stat-row-label">${row.label}</td>`;
+    
+    // Colunas de Tratamentos
     statsByTR.forEach(x => {
       let val = row.key === 'na' ? x.naCount : x.stats[row.key];
-      if (row.isCV && val !== null) h += `<td><span class="cv-badge ${cvCls(val)}">${parseFloat(val).toFixed(row.decimals)}%</span></td>`;
-      else if (val === null || (row.key !== 'na' && !x.stats.n)) h += '<td>—</td>';
-      else h += `<td>${parseFloat(val).toFixed(row.decimals)}</td>`;
+      
+      if (val === null || (row.key !== 'na' && !x.stats.n)) {
+        h += '<td>—</td>';
+      } else {
+        // Ignora a regra se for n ou NA (contagem exata)
+        let formattedVal = (row.key === 'n' || row.key === 'na') ? val : formatGeaves(val);
+        h += `<td>${formattedVal}${row.isCV ? '%' : ''}</td>`;
+      }
     });
+    
+    // Coluna Geral
     let gVal = generalVals[row.key];
-    if (row.isCV && gVal !== null) h += `<td class="global-col"><span class="cv-badge ${cvCls(gVal)}">${parseFloat(gVal).toFixed(row.decimals)}%</span></td>`;
-    else if (gVal === null) h += '<td class="global-col">—</td>';
-    else h += `<td class="global-col">${parseFloat(gVal).toFixed(row.decimals)}</td>`;
+    if (gVal === null) {
+      h += '<td class="global-col">—</td>';
+    } else {
+      let formattedGVal = (row.key === 'n' || row.key === 'na') ? gVal : formatGeaves(gVal);
+      h += `<td class="global-col">${formattedGVal}${row.isCV ? '%' : ''}</td>`;
+    }
+    
     h += '</tr>';
   });
+  
   wrap.innerHTML = h + '</tbody></table>';
   return wrap;
 }
 
-function cvCls(cv) { return cv < 10 ? 'cv-low' : cv < 20 ? 'cv-medium' : cv < 30 ? 'cv-high' : 'cv-veryhigh'; }
-function fmt(v, d) { if(v === null || v === undefined || isNaN(v)) return '—'; return parseFloat(v.toFixed(d)); }
+// ── REGRA GEAVES DE CASAS DECIMAIS ──
+function formatGeaves(value) {
+  if (typeof value !== 'number' || isNaN(value)) return '-';
+  
+  const absVal = Math.abs(value);
+  
+  if (absVal < 1) {
+    return value.toFixed(3); // Menor que 1: Três casas
+  } else if (absVal >= 1 && absVal < 10) {
+    return value.toFixed(2); // De 1 a 9.999: Duas casas
+  } else if (absVal >= 10 && absVal < 100) {
+    return value.toFixed(1); // De 10 a 99.999: Uma casa
+  } else {
+    return value.toFixed(0); // Acima de 100: Zero casas
+  }
+}
