@@ -4,7 +4,7 @@ import { globalState, ID_COLS } from './state.js';
 let chartType   = 'bar';    // 'bar' | 'line' | 'box' | 'violin' | 'heatmap' | 'scatter'
 let chartLayout = 'grid';   // 'grid' | 'single'
 let errorType   = 'sd';     // 'sd' | 'se'
-let perMode     = 'treatments'; // 'treatments' | 'periods'
+export let currentXAxis = 'TR'; // <-- O SEGREDO DO EIXO DINÂMICO
 let currentIdx  = 0;
 let chartVars   = [];
 
@@ -28,10 +28,26 @@ export function renderCharts() {
     return globalState.parsedData.some(row => typeof row[h] === 'number' && !isNaN(row[h]));
   });
 
-  const perKey = headers.find(h => h.toUpperCase()==='PER');
-  document.getElementById('perModeGroup').style.display = perKey ? 'flex' : 'none';
+  // --- INÍCIO DA CRIAÇÃO DO MENU DE EIXO X ---
+  const seletor = document.getElementById('xAxisSelector');
+  if (seletor) {
+    seletor.innerHTML = ''; 
+    const labels = {'TR': 'TR (Tratamento)', 'LEVEL': 'LEVEL (Níveis)', 'DIA': 'DIA (Tempo)', 'PER': 'PER (Períodos)'};
+    const colunasPossiveis = ['TR', 'LEVEL', 'DIA', 'PER'];
+    
+    colunasPossiveis.forEach(col => {
+      if (headers.some(h => h.toUpperCase() === col)) {
+        const option = document.createElement('option');
+        option.value = col;
+        option.textContent = labels[col];
+        if (currentXAxis === col) option.selected = true;
+        seletor.appendChild(option);
+      }
+    });
+  }
+  // --- FIM DA CRIAÇÃO DO MENU DE EIXO X ---
 
-  refreshCharts();
+  refreshCharts(); 
 }
 
 function refreshCharts() {
@@ -47,17 +63,26 @@ function refreshCharts() {
   }
 
   const headers = Object.keys(globalState.parsedData[0]);
-  const trKey   = headers.find(h => h.toUpperCase()==='TR') || 'TR';
-  const perKey  = headers.find(h => h.toUpperCase()==='PER') || null;
+  
+  // O Eixo X passa a ser dinâmico (TR, LEVEL ou DIA)
+  const trKey = headers.find(h => h.toUpperCase() === currentXAxis) || currentXAxis;
+
+  // Lógica de agrupamento (as cores das linhas/barras)
+  let perKey = null;
+  if (currentXAxis === 'TR') {
+    perKey = headers.find(h => h.toUpperCase() === 'PER') || null;
+  } else {
+    perKey = headers.find(h => h.toUpperCase() === 'TR') || null;
+  }
 
   let tSet={}, treatments=[];
-  globalState.parsedData.forEach(r => { if(!tSet[r[trKey]]){tSet[r[trKey]]=true;treatments.push(r[trKey]);} });
+  globalState.parsedData.forEach(r => { if(r[trKey] !== undefined && !tSet[r[trKey]]){tSet[r[trKey]]=true;treatments.push(r[trKey]);} });
   treatments.sort((a,b) => a-b);
 
   let periods = [null];
   if (perKey) {
     let pSet={}; periods=[];
-    globalState.parsedData.forEach(r => { if(!pSet[r[perKey]]){pSet[r[perKey]]=true;periods.push(r[perKey]);} });
+    globalState.parsedData.forEach(r => { if(r[perKey] !== undefined && !pSet[r[perKey]]){pSet[r[perKey]]=true;periods.push(r[perKey]);} });
     periods.sort((a,b) => a-b);
   }
 
@@ -94,7 +119,6 @@ function refreshCharts() {
       ? 'display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;' 
       : 'display: block;';
 
-    // Monta o HTML: a div da tabela só existe se for modo Single
     card.innerHTML = `
       <div class="chart-card-title">
         <span>${varName}</span>
@@ -122,8 +146,6 @@ function refreshCharts() {
       traces = buildDistributionTraces(varName, trKey, perKey, treatments, periods, 'violin');
     } else if (chartType === 'scatter') {
       traces = buildScatterIndividualTraces(varName, trKey, perKey, treatments, periods);
-    } else if (perKey && perMode === 'periods') {
-      traces = buildPeriodTraces(varName, trKey, perKey, treatments, periods);
     } else {
       traces = buildTreatmentTraces(varName, trKey, perKey, treatments, periods);
     }
@@ -148,7 +170,6 @@ function refreshCharts() {
 
     let layout = buildPlotLayout(varName, treatments, periods, tMin, tMax);
 
-    // ── FERRAMENTAS DE INTERAÇÃO DO PLOTLY ──
     const config = {
       responsive: true, 
       displaylogo: false, 
@@ -167,7 +188,6 @@ function refreshCharts() {
     if (globalMinVal !== "") document.getElementById(yMinId).value = globalMinVal;
     if (globalMaxVal !== "") document.getElementById(yMaxId).value = globalMaxVal;
 
-    // Sincronização dos eixos
     const plotElement = document.getElementById(divId);
     plotElement.on('plotly_relayout', function(eventData) {
       if (eventData['yaxis.range[0]'] !== undefined && eventData['yaxis.range[1]'] !== undefined) {
@@ -182,7 +202,6 @@ function refreshCharts() {
   });
 }
 
-// ── FUNÇÃO MATEMÁTICA: CORRELAÇÃO DE PEARSON (r) ──
 function calculatePearson(x, y) {
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
   let n = 0;
@@ -201,7 +220,6 @@ function calculatePearson(x, y) {
   return numerator / denominator;
 }
 
-// ── RENDERIZAÇÃO DO MAPA DE CALOR ──
 function renderCorrelationHeatmap(grid) {
   grid.className = 'charts-grid single-mode'; 
   document.getElementById('chartsNav').style.display = 'none'; 
@@ -283,8 +301,9 @@ function buildTreatmentTraces(varName, trKey, perKey, treatments, periods) {
     });
 
     const traceColor  = COLORS[pIdx % COLORS.length];
-    const sName  = perKey ? 'Período ' + per : varName;
-    const hoverT = xLabels.map((x,i) => `Trat: ${x}<br>Média: ${means[i]!==null ? formatGeaves(means[i]) : 'NA'}<br>${errorType==='sd'?'DP':'EP'}: ${errors[i]!==null ? formatGeaves(errors[i]) : 'NA'}<br>n: ${ns[i]}`);
+    // Ajuste dinâmico de legenda
+    const sName = perKey ? (perKey === 'TR' ? 'Trat. ' + per : 'Período ' + per) : varName;
+    const hoverT = xLabels.map((x,i) => `Eixo X: ${x}<br>Média: ${means[i]!==null ? formatGeaves(means[i]) : 'NA'}<br>${errorType==='sd'?'DP':'EP'}: ${errors[i]!==null ? formatGeaves(errors[i]) : 'NA'}<br>n: ${ns[i]}`);
 
     const barColor = perKey ? traceColor : treatments.map((_, i) => COLORS[i % COLORS.length]);
     const errColor = perKey ? traceColor : '#4A2A1A';
@@ -311,34 +330,6 @@ function buildTreatmentTraces(varName, trKey, perKey, treatments, periods) {
   return traces;
 }
 
-function buildPeriodTraces(varName, trKey, perKey, treatments, periods) {
-  const traces = [];
-  const xLabels = periods.map(String);
-
-  treatments.forEach((tr, tIdx) => {
-    const trRows = globalState.parsedData.filter(r => String(r[trKey])===String(tr));
-    let means=[], errors=[], ns=[];
-
-    periods.forEach(per => {
-      const vals = trRows.filter(r => String(r[perKey])===String(per)).map(r => r[varName]).filter(v => typeof v==='number');
-      const st = getChartStats(vals);
-      means.push(st.n ? st.mean : null);
-      errors.push(st.n ? (errorType==='sd' ? st.sd : st.se) : null);
-      ns.push(st.n);
-    });
-
-    const color = COLORS[tIdx % COLORS.length];
-    traces.push({
-      type: chartType==='bar'?'bar':'scatter', mode: chartType==='bar'?'none':'lines+markers', name: 'Trat. '+tr,
-      x: xLabels, y: means,
-      error_y: {type:'data',array:errors,visible:true,color:color,thickness:2,width:6},
-      marker: chartType==='bar' ? {color:color,opacity:0.85} : {color:color,size:8},
-      line: chartType==='bar' ? undefined : {color:color,width:2.5}
-    });
-  });
-  return traces;
-}
-
 function buildDistributionTraces(varName, trKey, perKey, treatments, periods, type) {
   const traces = [];
   const seriesList = perKey ? periods : [null];
@@ -351,7 +342,7 @@ function buildDistributionTraces(varName, trKey, perKey, treatments, periods, ty
       if (!vals.length) return;
 
       const color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
-      const lbl   = perKey ? `T${tr} P${per}` : String(tr);
+      const lbl   = perKey ? (perKey === 'TR' ? `Eixo:${tr} T${per}` : `Eixo:${tr} P${per}`) : String(tr);
 
       let traceObj = {
         name: lbl, y: vals, x: vals.map(()=>lbl),
@@ -390,7 +381,7 @@ function buildScatterIndividualTraces(varName, trKey, perKey, treatments, period
       if (!vals.length) return;
 
       const color = COLORS[(perKey ? pIdx : tIdx) % COLORS.length];
-      const lbl = perKey ? `T${tr} P${per}` : `Trat. ${tr}`;
+      const lbl = perKey ? (perKey === 'TR' ? `Eixo:${tr} Trat.${per}` : `Eixo:${tr} P${per}`) : `G:${tr}`;
 
       traces.push({
         type: 'scatter', mode: 'markers', name: lbl,
@@ -399,7 +390,7 @@ function buildScatterIndividualTraces(varName, trKey, perKey, treatments, period
           color: color, size: 14, opacity: 0.55,
           line: { color: '#2A1005', width: 1.5 }
         },
-        hovertemplate: `<b>Trat: ${tr}</b><br>Valor: %{y}<extra></extra>` 
+        hovertemplate: `<b>Eixo: ${tr}</b><br>Valor: %{y}<extra></extra>` 
       });
     });
   });
@@ -410,10 +401,9 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
   const globalMinVal = document.getElementById('yMin').value;
   const globalMaxVal = document.getElementById('yMax').value;
   const isBoxOrViolin = chartType === 'box' || chartType === 'violin';
-  const hasPer = document.getElementById('perModeGroup').style.display !== 'none';
-  const xTitle = isBoxOrViolin ? '' : (perMode === 'periods' && hasPer ? 'Período' : 'Tratamento');
+  const xTitle = isBoxOrViolin ? '' : currentXAxis;
 
-  const catArray = perMode === 'periods' && hasPer && periods ? periods.map(String) : treatments.map(String);
+  const catArray = treatments.map(String);
 
   let defaultMin = tMin - Math.abs(tMin) * 0.10;
   let defaultMax = tMax + Math.abs(tMax) * 0.05;
@@ -434,43 +424,37 @@ function buildPlotLayout(varName, treatments, periods, tMin, tMax) {
   return layout;
 }
 
-// ── GERAÇÃO DA TABELA DE DADOS BRUTOS (PLOTLY TABLE) ──
 function renderChartTable(tableDivId, varName, trKey, perKey, treatments, periods) {
-  // 1. Identificar se existe a coluna de Repetição (REP) na planilha
   const headersList = Object.keys(globalState.parsedData[0]);
   const repKey = headersList.find(h => h.toUpperCase() === 'REP') || null;
 
-  // 2. Definir os cabeçalhos dinamicamente
   let headValues = [];
-  if (perKey) headValues.push('<b>Período</b>');
-  headValues.push('<b>Trat</b>');
-  if (repKey) headValues.push('<b>Rep</b>');
+  headValues.push(`<b>${currentXAxis}</b>`);
+  if (perKey) headValues.push(`<b>${perKey}</b>`);
+  if (repKey) headValues.push('<b>REP</b>');
   headValues.push(`<b>${varName}</b>`);
 
-  // 3. Filtrar e extrair os dados brutos (ignora células em branco)
   let rawData = globalState.parsedData.filter(row => typeof row[varName] === 'number' && !isNaN(row[varName]));
 
-  // 4. Organizar os dados por Período -> Tratamento -> Repetição
   rawData.sort((a, b) => {
-    if (perKey && a[perKey] !== b[perKey]) return a[perKey] - b[perKey];
     if (a[trKey] !== b[trKey]) return a[trKey] - b[trKey];
+    if (perKey && a[perKey] !== b[perKey]) return a[perKey] - b[perKey];
     if (repKey) return a[repKey] - b[repKey];
     return 0;
   });
 
-  // 5. Separar em colunas para o Plotly
-  let colPer = [], colTrat = [], colRep = [], colVar = [];
+  let colTrat = [], colPer = [], colRep = [], colVar = [];
 
   rawData.forEach(row => {
-    if (perKey) colPer.push(row[perKey]);
     colTrat.push(row[trKey]);
+    if (perKey) colPer.push(row[perKey]);
     if (repKey) colRep.push(row[repKey]);
     colVar.push(row[varName]);
   });
 
   let cellValues = [];
-  if (perKey) cellValues.push(colPer);
   cellValues.push(colTrat);
+  if (perKey) cellValues.push(colPer);
   if (repKey) cellValues.push(colRep);
   cellValues.push(colVar);
 
@@ -480,7 +464,7 @@ function renderChartTable(tableDivId, varName, trKey, perKey, treatments, period
       values: headValues,
       align: "center",
       line: {width: 1, color: '#2A1005'},
-      fill: {color: '#8B1A1A'}, // Padrão GEAVES
+      fill: {color: '#8B1A1A'},
       font: {family: "Source Sans 3, sans-serif", size: 13, color: "white"}
     },
     cells: {
@@ -503,6 +487,12 @@ function renderChartTable(tableDivId, varName, trKey, perKey, treatments, period
 }
 
 // ══ EXPOSIÇÃO GLOBAL PARA OS BOTÕES DO HTML ══
+
+window.changeXAxis = (novoEixoX) => {
+  currentXAxis = novoEixoX;
+  refreshCharts();
+};
+
 window.setChartType = (type, btn) => {
   chartType = type;
   document.querySelectorAll('#chartTypeGroup .toggle-btn').forEach(b => b.classList.remove('active'));
@@ -525,13 +515,6 @@ window.setLayout = (layout, btn) => {
 window.setErrorType = (type, btn) => {
   errorType = type;
   document.querySelectorAll('#errorTypeGroup .toggle-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  refreshCharts();
-};
-
-window.setPerMode = (mode, btn) => {
-  perMode = mode;
-  document.querySelectorAll('#perModeButtons .toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   refreshCharts();
 };
@@ -623,19 +606,18 @@ window.exportAllPNG = () => {
   });
 };
 
-// ── REGRA GEAVES DE CASAS DECIMAIS ──
 function formatGeaves(value) {
   if (typeof value !== 'number' || isNaN(value)) return '-';
   
   const absVal = Math.abs(value);
   
   if (absVal < 1) {
-    return value.toFixed(3); // Menor que 1: Três casas
+    return value.toFixed(3); 
   } else if (absVal >= 1 && absVal < 10) {
-    return value.toFixed(2); // De 1 a 9.999: Duas casas
+    return value.toFixed(2); 
   } else if (absVal >= 10 && absVal < 100) {
-    return value.toFixed(1); // De 10 a 99.999: Uma casa
+    return value.toFixed(1); 
   } else {
-    return value.toFixed(0); // Acima de 100: Zero casas
+    return value.toFixed(0); 
   }
 }

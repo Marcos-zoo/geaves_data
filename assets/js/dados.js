@@ -246,7 +246,5 @@ function resetUpload() {
   resetResults();
 }
 
-// Como os botões HTML usam onclick="runValidationAndRender()" e onclick="resetUpload()",
-// precisamos deixá-los visíveis globalmente.
 window.runValidationAndRender = runValidationAndRender;
 window.resetUpload = resetUpload;
