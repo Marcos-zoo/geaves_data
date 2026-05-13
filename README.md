@@ -45,14 +45,7 @@ Para garantir o funcionamento preciso dos algoritmos do DataAves, as planilhas (
 5.  **Ambiente Limpo:** A aba analisada deve conter estritamente a tabela de dados. Gráficos, anotações flutuantes, caixas de texto ou imagens inseridas na mesma aba causarão falha de leitura.
 6.  **Categorização por Abas:** Separe variáveis de categorias distintas (Ex: Desempenho, Qualidade Óssea, Perfil Sanguíneo) em abas (sheets) diferentes dentro do mesmo arquivo Excel.
 
----
 
-## 💻 Como Executar e Instalar
-
-O DataAves não requer instalação de servidores ou banco de dados.
-1. Extraia os arquivos da plataforma para uma pasta local no seu dispositivo.
-2. Dê um duplo clique no arquivo `index.html` para executá-lo em seu navegador de preferência (Google Chrome, Mozilla Firefox ou Microsoft Edge).
-3. Opcionalmente, pode ser configurado como PWA (Progressive Web App) para uso offline direto na granja ou laboratório.
 
 ---
 *DataAves - Inovação e precisão estatística para a pesquisa avícola brasileira.*
